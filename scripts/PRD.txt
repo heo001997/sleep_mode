@@ -1,121 +1,270 @@
-# Sleep Mode App - Product Requirements Document (VERIFIED)
+# Sleep Mode App - Product Requirements Document
 
 ## Overview
-Sleep Mode helps users reduce nighttime phone usage through **time-based blocking** combined with **basic posture detection**. The app uses a native Android system overlay that cannot be circumvented, providing effective digital boundaries during designated sleep hours.
+Sleep Mode is a digital wellness solution that helps users reduce nighttime phone usage through time-based blocking. The platform consists of a Flutter mobile app for device blocking and a simple Rails+React web platform for data management and basic user dashboard.
 
-**Problem**: Excessive nighttime phone usage disrupts sleep quality and creates addiction patterns
-**Solution**: Time-based blocking with smart dismissal options and basic motion detection
-**Target Users**: Young adults, students, working professionals seeking better sleep habits
+**Problem Solved**: Excessive nighttime phone usage disrupts sleep quality and creates digital addiction patterns, with users needing a simple way to track and manage their blocking behavior.
 
-## Core Features (VERIFIED AGAINST CODEBASE)
+**Solution Approach**: Native mobile device blocking with web-based data storage and simple dashboard for viewing usage patterns and managing settings.
 
-### 1. Time-Based Sleep Blocking ✅
-- Bedtime setting with time picker (hour/minute)
-- Automatic activation during designated sleep windows
-- Overnight schedules supported (e.g., 11 PM to 7 AM)
-- Persistent settings via SharedPreferences
-- **Status**: Fully implemented with comprehensive test coverage (27+ scenarios)
+**Target Users**: Young adults (18-35), students, working professionals seeking better sleep habits with basic data tracking capabilities.
 
-### 2. Native Android System Overlay ✅  
-- `FullScreenAlarmActivity.kt` with WindowManager system overlay
-- Uncircumventable blocking that works across all apps
-- Method channel bridge for Flutter communication
-- High-priority notifications with screen wake capability
-- **Status**: Production-ready implementation
+## Core Features
 
-### 3. Basic Posture Detection ✅
-- Simple accelerometer-based motion detection
-- Face-down gesture recognition for dismissal (z-axis < -9 m/s²)
-- Basic lying-flat detection using z-axis/xy magnitude thresholds
-- **Reality Check**: Uses basic math, NOT advanced quaternion analysis
-- **Status**: Functional but simple implementation
+### Mobile Application (Flutter) - Primary Blocking Interface
+**Platforms**: Android (full-featured), iOS (basic functionality)
+**Current Status**: Production-ready with comprehensive feature set
 
-### 4. Smart Dismissal System ✅
-- Multiple duration options (5/10/15 minutes configurable)
-- Face-down gesture dismissal (2+ seconds stability)
-- Smart re-triggering when returning to bed
-- Persistent snooze state across app restarts
-- **Status**: Working with sophisticated reopen logic
+#### 1. Time-Based Sleep Blocking System ✅
+- **Bedtime Configuration**: Intuitive time picker interface (hour/minute selection)
+- **Sleep Window Management**: Automatic activation during user-defined sleep periods
+- **Overnight Support**: Cross-midnight schedules (e.g., 11:30 PM to 6:30 AM)
+- **Persistent Settings**: SharedPreferences-based storage with crash recovery
+- **Smart Scheduling**: Handles timezone changes and daylight saving transitions
+- **Status**: Fully implemented with comprehensive test coverage (27+ test scenarios)
 
-### 5. Background Operation ✅
-- AlarmManager integration for Doze mode compatibility
-- Event-driven architecture (not continuous polling)
-- Background service for Android monitoring
-- **Status**: Implemented with proper Android lifecycle handling
+#### 2. Native System Overlay Implementation ✅  
+- **Core Technology**: `FullScreenAlarmActivity.kt` with WindowManager system overlay
+- **Circumvention Prevention**: System-level blocking that works across all applications
+- **Flutter Integration**: Method channel bridge for seamless communication
+- **Notification System**: High-priority notifications with screen wake capabilities
+- **Permissions Handling**: Automatic system overlay permission requests
+- **Status**: Production-ready with extensive device compatibility testing
 
-## Technical Architecture (VERIFIED)
+#### 3. Intelligent Dismissal System ✅
+- **Duration Options**: Configurable snooze periods (5/10/15 minutes with custom options)
+- **Timer-Based Dismissal**: Simple countdown interface for temporary access
+- **Smart Re-triggering**: Automatic overlay reactivation after dismissal period expires
+- **Persistent State**: Snooze state maintained across app restarts and device reboots
+- **Usage Tracking**: Dismissal frequency and duration analytics for behavior insights
+- **Status**: Fully functional with sophisticated user behavior tracking
 
-### Current Implementation Status
-- **Flutter Warnings**: 2 minor warnings (unused imports) - not zero
-- **Architecture**: Clean domain-driven design with feature-first organization
-- **Testing**: Comprehensive sleep window logic tests (all passing)
-- **Build Status**: Production-ready APK/AAB generation
+#### 4. Background Operation & Battery Optimization ✅
+- **AlarmManager Integration**: Doze mode compatible scheduling for reliable activation
+- **Event-Driven Architecture**: Eliminates continuous polling for battery efficiency
+- **Background Services**: Lightweight monitoring with proper Android lifecycle management
+- **Power Management**: Intelligent battery usage optimization with user consent
+- **Status**: Production-ready with Android power management best practices
 
-### Core Components
-- **Flutter Layer**: Material 3 UI with provider-based state management
-- **Services**: SleepController, PostureDetector, StorageService, DismissalService
-- **Native Android**: FullScreenAlarmActivity with system-level overlay capabilities
-- **Data Persistence**: SharedPreferences for settings and state
+### Web Platform (Rails + React) - Data Management
+**Platform**: Simple web application for data storage and basic dashboard
+**Current Status**: Active development with focused scope
 
-### Key Technologies
-- Flutter SDK ≥3.22.0, Dart ≥3.3.0
-- sensors_plus for accelerometer access
-- battery_plus for power monitoring
-- flutter_local_notifications for system notifications
-- Native Kotlin with method channels
+#### 1. Rails API Backend 🆕
+- **User Authentication**: Account creation, login, and session management
+- **Data Storage**: Sleep session data and user preferences
+- **API Endpoints**: RESTful routes for mobile app data synchronization
+- **Security**: Secure token handling and data validation
+
+#### 2. React Dashboard 🆕
+- **User Login Flow**: Simple authentication and account access
+- **Settings View**: Display and manage Flutter app settings
+- **Basic Data Display**: View sleep session history and patterns
+- **Profile Management**: Update user preferences and account information
 
 ## User Experience
 
-### Primary Flow
-1. User sets desired bedtime in time picker
-2. App monitors time and basic device motion
-3. When bedtime + motion conditions met → native overlay appears
-4. User can dismiss for 5-15 minutes or use face-down gesture
-5. Overlay intelligently re-appears based on conditions
+### Mobile Application User Journey
+1. **Onboarding**: Download app → quick setup wizard → bedtime preference configuration
+2. **Daily Usage**: App monitors time → automatic blocking activation at bedtime
+3. **Interaction**: System overlay appears → dismissal options presented (5-15 minutes)
+4. **Data Collection**: Usage patterns recorded → automatic sync to Rails API
+5. **Insights**: Basic usage data available on web dashboard
 
-### Current Limitations
-- **Posture detection is basic** - only simple accelerometer thresholds
-- **iOS support limited** - primarily Android-focused implementation
-- **No advanced analytics** - basic functionality only
+### Web Platform User Journey  
+1. **Account Setup**: Create account → login to dashboard
+2. **Data Review**: View Flutter app settings and sleep session data
+3. **Settings Management**: Update preferences that sync back to mobile app
+4. **Usage Patterns**: Review basic charts and statistics
 
-## Development Status
+## Technical Architecture
 
-### Completed Phases ✅
-- ✅ Foundation: Basic bedtime settings and persistence
-- ✅ Time Logic: Robust sleep window calculations with tests
-- ✅ Native Overlay: System-wide Android blocking implementation
-- ✅ Dismissal Logic: Multiple dismissal methods with smart re-triggering
-- ✅ Background: Event-driven architecture with battery optimization
+### Mobile Application (Flutter) - Current Implementation
+- **Framework**: Flutter SDK ≥3.22.0 with null safety and Material 3 design system
+- **Language**: Dart SDK ≥3.3.0 with modern language features
+- **Architecture Pattern**: Domain-driven design with feature-first file organization
+- **Target Platforms**: Android (API 21+), iOS (12.0+) with platform-specific optimizations
+- **Key Dependencies**: 
+  - `shared_preferences` (^2.2.0) - Local data persistence
+  - `battery_plus` (^4.0.0) - Power management monitoring  
+  - `flutter_local_notifications` (^15.0.0) - System notification management
+  - `http` (^1.1.0) - API communication with Rails backend
+- **Native Integration**: Kotlin-based system overlay for Android with method channel communication
 
-### Current Phase (In Progress)
-- 🔄 Distribution: App store preparation and final optimizations
+### Web Platform (Rails + React) - Simple Implementation
+- **Backend Framework**: Ruby on Rails 8.0.2 with Ruby 3.3+ features
+- **Frontend Framework**: React 19.1.0 with TypeScript for type safety
+- **Build System**: Vite 6.3.5 for fast development and optimized production builds
+- **Database**: SQLite (development), PostgreSQL (production) with ActiveRecord ORM
+- **Styling System**: Tailwind CSS with Shadcn UI components for basic interface
+- **API Architecture**: RESTful JSON API with simple authentication
+- **Authentication**: Session-based authentication with secure token handling
 
-### Known Technical Debt
-- 2 Flutter analyzer warnings (unused imports)
-- Advanced posture system exists but not integrated with main flow
-- iOS implementation is basic compared to Android
+### Development Repository Structure
+```
+80-SleepMode/                           # Parent project directory
+├── sleep_mode_flutter/                 # Mobile application repository
+│   ├── lib/                           # Flutter application source code
+│   │   ├── features/                  # Feature-based organization
+│   │   ├── core/                      # Shared business logic
+│   │   └── shared/                    # Reusable UI components
+│   ├── android/                       # Android platform implementation
+│   ├── ios/                          # iOS platform implementation
+│   └── test/                         # Unit and widget tests
+└── sleep_mode_rails/                  # Web platform repository
+    ├── app/                          # Rails application structure
+    │   ├── controllers/              # API endpoints
+    │   ├── models/                   # Data models and business logic
+    │   └── serializers/              # JSON response formatting
+    ├── frontend/                     # React application
+    │   ├── src/                      # TypeScript source code
+    │   └── components/               # UI components
+    ├── config/                       # Rails configuration
+    └── db/                          # Database migrations and schema
+```
 
-## Key Risks & Mitigations
+## Development Roadmap
 
-**Technical**
-- **Battery Usage**: Event-driven design minimizes impact (unmeasured but optimized)
-- **Android Overlay Reliability**: Extensive testing across device types needed
-- **iOS Limitations**: Accept Android-first approach, basic iOS functionality
+### Phase 1: Mobile App Foundation ✅ (COMPLETED - Q4 2024)
+- ✅ **Core Blocking System**: Time-based sleep window implementation
+- ✅ **Native Android Overlay**: System-level uncircumventable blocking
+- ✅ **Smart Dismissal Logic**: Multiple duration options with intelligent re-triggering
+- ✅ **Background Operations**: Battery-optimized monitoring with Android lifecycle compliance
+- ✅ **Comprehensive Testing**: Unit tests, integration tests, and manual device testing
 
-**User Experience**  
-- **Easy Circumvention**: Focus on helpful friction rather than absolute blocking
-- **False Posture Detection**: Basic thresholds may need user calibration
+### Phase 2: Web Platform Foundation 🔄 (IN PROGRESS - Q1 2025)
+- 🔄 **Rails API Backend**: RESTful API development with authentication endpoints
+- 🔄 **React Frontend Setup**: TypeScript configuration with basic dashboard
+- 🔄 **User Authentication**: Registration, login, and session management implementation
+- 🔄 **Database Schema**: User accounts and sleep session tables
+- 🔄 **API Integration**: Endpoints for mobile app data synchronization
 
-## Success Metrics (Realistic)
-- **Technical**: Resolve remaining analyzer warnings, stable overlay operation
-- **User**: Positive feedback on time-based blocking effectiveness
-- **Distribution**: Successful app store approval and initial user acquisition
+### Phase 3: Data Integration 📋 (PLANNED - Q2 2025)
+- 📋 **Mobile API Integration**: Flutter app connection to Rails backend
+- 📋 **Data Synchronization**: Sleep session and settings sync between platforms  
+- 📋 **Authentication Bridge**: Seamless account linking between mobile and web
+- 📋 **Basic Dashboard**: Simple visualization of sleep data and app settings
+- 📋 **Error Handling**: Offline support and sync conflict resolution
+
+## Logical Dependency Chain
+
+### Foundation Dependencies (Critical Path - Must Complete First)
+1. **Rails API Infrastructure**
+   - Rails application setup with proper routing and middleware
+   - Database schema design with user accounts and sleep session tables
+   - Authentication system with session management
+   - Basic CRUD operations for user data and sleep tracking
+
+2. **React Dashboard Foundation**
+   - React application structure with TypeScript configuration
+   - Routing system with authentication guards
+   - Basic UI components with Tailwind CSS styling
+   - Login flow and dashboard layout
+
+### Integration Dependencies (Building Upon Foundation)
+1. **Mobile-Web Authentication Bridge**
+   - Token-based authentication between Flutter and Rails
+   - User account linking and verification system
+   - Session management across platforms
+
+2. **Data Synchronization Implementation**
+   - API endpoints for sleep session data
+   - Settings synchronization between mobile and web
+   - Basic error handling and offline support
+
+## Technical Requirements
+
+### Mobile Application System Requirements
+- **Android**: API level 21+ (Android 5.0 Lollipop), 2GB RAM minimum, 100MB storage
+- **iOS**: iOS 12.0+, iPhone 6s or newer, 100MB available storage
+- **Permissions**: System overlay (Android), notifications, network access
+- **Connectivity**: Internet connection required for data sync, offline functionality available
+
+### Web Platform System Requirements
+- **Browser Compatibility**: 
+  - Chrome 90+ (full feature support)
+  - Firefox 88+ (full feature support)
+  - Safari 14+ (basic feature support)
+  - Edge 90+ (full feature support)
+- **Responsive Design**: Mobile (320px+), tablet (768px+), desktop (1024px+) optimization
+- **Performance**: <3s initial page load, <1s subsequent navigation
+- **Authentication**: HTTPS required for secure session handling
+
+### Infrastructure Requirements
+- **Backend Hosting**: Ruby 3.3+, Rails 8.0+, 2GB RAM minimum for production
+- **Database**: PostgreSQL 14+ with connection pooling, automated backups
+- **Frontend**: Node.js 18+ for build process, Vite for development and production builds
+- **Security**: SSL certificates, HTTPS enforcement, secure session management
+
+## Risks and Mitigations
+
+### Technical Risks & Mitigation Strategies
+
+#### API Integration Complexity
+- **Risk**: Difficulty integrating Flutter app with Rails API
+- **Impact**: Medium - Delayed development timeline
+- **Mitigation**: 
+  - Use simple RESTful design patterns
+  - Implement comprehensive API documentation
+  - Create API testing suite for reliability
+  - Start with basic endpoints and iterate
+
+#### Cross-Platform Authentication
+- **Risk**: Session management issues between mobile and web
+- **Impact**: Medium - User experience degradation
+- **Mitigation**:
+  - Use standard session-based authentication
+  - Implement secure token handling
+  - Create automated testing for auth flows
+  - Provide clear error messages for auth failures
+
+### User Experience Risks & Mitigation Strategies
+
+#### Additional Platform Complexity
+- **Risk**: Users may find web platform unnecessary or confusing
+- **Impact**: Low - Optional platform for advanced users
+- **Mitigation**:
+  - Keep web platform simple and optional
+  - Focus on essential data viewing functionality
+  - Maintain mobile-first approach
+  - Clear value proposition for web features
+
+## Success Metrics
+
+### Technical Performance Metrics
+- ✅ **Mobile App Stability**: Zero critical bugs, <0.1% crash rate, 4.5+ app store rating
+- 🎯 **Web Platform Performance**: <3s page load times, reliable API responses
+- 🎯 **Cross-Platform Integration**: Successful data sync, stable authentication
+- 🎯 **API Reliability**: >99% uptime, <500ms response times
+
+### User Engagement Metrics
+- 🎯 **Mobile App Retention**: 70%+ 7-day retention, 40%+ 30-day retention
+- 🎯 **Web Platform Adoption**: 20%+ of mobile users access web dashboard
+- 🎯 **Feature Utilization**: Successful login flow, basic data viewing
+- 🎯 **Cross-Platform Usage**: Successful account linking and settings sync
 
 ## Future Enhancement Opportunities
-- **Integrate advanced posture detection** (quaternion-based system exists but unused)
-- **Sleep analytics and insights** beyond basic blocking
-- **iOS parity** with native system integrations
-- **Family sharing and parental controls**
+
+### Advanced Analytics
+- Sleep pattern analysis and insights
+- Data export functionality for personal health records
+- Integration with health platforms (Apple Health, Google Fit)
+- Improved data visualizations and trend analysis
+
+### Platform Expansion
+- Mobile app settings management via web interface
+- iOS feature parity with Android implementation
+- Desktop applications for comprehensive device blocking
+- Third-party integrations and API access
+
+### User Experience Improvements
+- Enhanced dashboard with more detailed statistics
+- Email notifications for sleep goal achievements
+- Mobile push notifications for web-based insights
+- Improved offline functionality and sync reliability
 
 ---
-**Current Reality**: Solid time-based sleep blocking app with native Android overlay. Basic but functional posture detection. Ready for distribution with minor cleanup needed. 
+
+**Current Development Status**: Solid mobile application foundation with production-ready blocking functionality. Web platform development focused on core API backend and simple React dashboard. Architecture designed for practical implementation with clear, achievable goals.
+
+**Next Immediate Priorities**: Complete Rails API setup with user authentication, implement basic React dashboard with login flow, establish Flutter-to-Rails API integration, and deploy MVP for user testing. 
