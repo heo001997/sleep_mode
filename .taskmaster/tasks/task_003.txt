@@ -1,0 +1,66 @@
+# Task ID: 3
+# Title: Update Dismissal System to Timer-Only Implementation
+# Status: done
+# Dependencies: 1, 2
+# Priority: high
+# Description: Simplify dismissal system to use only timer-based dismissal, removing any posture detection dismissal methods
+# Details:
+1. Update DismissalService to only support timer-based dismissal (5/10/15 minutes)
+2. Remove posture detection dismissal logic from FullScreenAlarmActivity.kt
+3. Simplify dismissal UI to show only timer options
+4. Update method channel communication to remove posture-related messages
+5. Ensure dismissal state persistence only tracks timer-based dismissals
+6. Update dismissal configuration to remove posture detection settings
+
+# Test Strategy:
+Test all dismissal duration options (5/10/15 minutes). Verify dismissal state persists across app restarts. Test smart re-triggering after dismissal period expires. Ensure overlay reappears correctly after timer expires.
+
+# Subtasks:
+## 1. Analyze current DismissalService implementation [done]
+### Dependencies: None
+### Description: Review the existing DismissalService code to identify all posture-related logic and dependencies that need to be removed.
+### Details:
+Document the current architecture, identify all posture-related methods and properties, map out dependencies with other components, and create a refactoring plan. Focus on understanding how the service currently interacts with native code through method channels.
+
+## 2. Remove posture logic from native Android code [done]
+### Dependencies: 3.1
+### Description: Identify and remove all posture-related code from the native Android implementation.
+### Details:
+Remove posture sensors, listeners, and related logic from Java/Kotlin files. Update any native method channel implementations that handle posture-related events. Ensure that removing this code doesn't break other functionality.
+
+## 3. Refactor DismissalService to use timer-based approach [done]
+### Dependencies: 3.1
+### Description: Redesign the DismissalService to rely solely on timer-based logic instead of posture detection.
+### Details:
+Implement timer management, state tracking, and event handling. Ensure the service properly handles app lifecycle events (pause, resume, etc.). Create clean interfaces for other components to interact with the service.
+
+## 4. Update method channels for timer-based communication [done]
+### Dependencies: 3.2, 3.3
+### Description: Modify existing method channels or create new ones to support the timer-based approach.
+### Details:
+Update method channel handlers on both Flutter and native sides. Implement proper error handling and ensure bidirectional communication works correctly. Document the new method channel API.
+
+## 5. Update UI components to work with refactored service [done]
+### Dependencies: 3.3
+### Description: Modify all UI components that previously relied on posture information to work with the new timer-based approach.
+### Details:
+Update widgets, screens, and UI logic to consume the refactored DismissalService. Ensure UI properly reflects timer states and transitions. Implement any new UI elements needed for timer visualization or control.
+
+## 6. Update persistence layer for timer settings [done]
+### Dependencies: 3.3
+### Description: Modify the persistence layer to store and retrieve timer-related settings instead of posture settings.
+### Details:
+Update database schemas or shared preferences as needed. Implement migration strategy for existing users. Ensure settings are properly persisted across app restarts.
+
+## 7. Write unit and integration tests for timer-based flows [done]
+### Dependencies: 3.3, 3.4, 3.5, 3.6
+### Description: Create comprehensive test suite for all timer-based functionality in the refactored service.
+### Details:
+Write unit tests for the DismissalService, testing all timer scenarios. Create integration tests for the interaction between the service and UI components. Test edge cases like app backgrounding, device restarts, and timer interruptions.
+
+## 8. Perform end-to-end testing and bug fixing [done]
+### Dependencies: 3.7
+### Description: Conduct thorough end-to-end testing of the entire application with the refactored DismissalService.
+### Details:
+Test on multiple devices and Android versions. Verify all timer-based flows work correctly in real-world scenarios. Fix any bugs discovered during testing. Document any known limitations or edge cases for future reference.
+

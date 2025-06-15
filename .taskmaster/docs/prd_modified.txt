@@ -1,0 +1,132 @@
+# Sleep Mode App - Product Requirements Document (MODIFIED)
+
+## Overview
+Sleep Mode helps users reduce nighttime phone usage through **time-based blocking**. The app uses a native Android system overlay that cannot be circumvented, providing effective digital boundaries during designated sleep hours.
+
+**Problem**: Excessive nighttime phone usage disrupts sleep quality and creates addiction patterns
+**Solution**: Time-based blocking with smart dismissal options  
+**Target Users**: Young adults, students, working professionals seeking better sleep habits
+
+## Core Features (VERIFIED AGAINST CODEBASE)
+
+### 1. Time-Based Sleep Blocking ✅
+- Bedtime setting with time picker (hour/minute)
+- Automatic activation during designated sleep windows
+- Overnight schedules supported (e.g., 11 PM to 7 AM)
+- Persistent settings via SharedPreferences
+- **Status**: Fully implemented with comprehensive test coverage (27+ scenarios)
+
+### 2. Native Android System Overlay ✅  
+- `FullScreenAlarmActivity.kt` with WindowManager system overlay
+- Uncircumventable blocking that works across all apps
+- Method channel bridge for Flutter communication
+- High-priority notifications with screen wake capability
+- **Status**: Production-ready implementation
+
+### 3. Smart Dismissal System ✅
+- Multiple duration options (5/10/15 minutes configurable)
+- Simple timer-based dismissal
+- Smart re-triggering when returning after dismissal period
+- Persistent snooze state across app restarts
+- **Status**: Working with sophisticated reopen logic
+
+### 4. Background Operation ✅
+- AlarmManager integration for Doze mode compatibility
+- Event-driven architecture (not continuous polling)
+- Background service for Android monitoring
+- **Status**: Implemented with proper Android lifecycle handling
+
+## Technical Architecture (VERIFIED)
+
+### Current Implementation Status
+- **Flutter Warnings**: 2 minor warnings (unused imports) - cleanup needed
+- **Architecture**: Clean domain-driven design with feature-first organization
+- **Testing**: Comprehensive sleep window logic tests (all passing)
+- **Build Status**: Production-ready APK/AAB generation
+
+### Core Components
+- **Flutter Layer**: Material 3 UI with provider-based state management
+- **Services**: SleepController, StorageService, DismissalService
+- **Native Android**: FullScreenAlarmActivity with system-level overlay capabilities
+- **Data Persistence**: SharedPreferences for settings and state
+
+### Key Technologies
+- Flutter SDK ≥3.22.0, Dart ≥3.3.0
+- battery_plus for power monitoring
+- flutter_local_notifications for system notifications
+- Native Kotlin with method channels
+
+## User Experience
+
+### Primary Flow
+1. User sets desired bedtime in time picker
+2. App monitors time 
+3. When bedtime reached → native overlay appears
+4. User can dismiss for 5-15 minutes using simple timer
+5. Overlay intelligently re-appears after dismissal period
+
+### Current Limitations
+- **iOS support limited** - primarily Android-focused implementation
+- **No advanced analytics** - basic functionality only
+
+## Development Status
+
+### Completed Phases ✅
+- ✅ Foundation: Basic bedtime settings and persistence
+- ✅ Time Logic: Robust sleep window calculations with tests
+- ✅ Native Overlay: System-wide Android blocking implementation
+- ✅ Dismissal Logic: Multiple dismissal methods with smart re-triggering
+- ✅ Background: Event-driven architecture with battery optimization
+
+### Current Phase (In Progress)
+- 🔄 **Code Cleanup**: Remove unused posture detection components
+- 🔄 **Distribution**: App store preparation and final optimizations
+
+### Tasks Needed
+1. **Remove Posture Detection Feature**
+   - Remove PostureDetector service and related classes
+   - Remove sensors_plus dependency 
+   - Clean up posture-related UI components
+   - Update dismissal system to use simple timer only
+   - Remove accelerometer permissions from Android manifest
+   - Update tests to remove posture-related test cases
+
+2. **Code Cleanup & Optimization**
+   - Fix Flutter analyzer warnings (unused imports)
+   - Remove unused assets and dependencies
+   - Optimize build configuration for distribution
+
+3. **Distribution Preparation**
+   - App store metadata and descriptions
+   - Icon and screenshot finalization
+   - Release documentation updates
+   - Final testing across device types
+
+### Known Technical Debt
+- 2 Flutter analyzer warnings (unused imports)
+- Posture detection components still present in codebase
+- iOS implementation is basic compared to Android
+
+## Key Risks & Mitigations
+
+**Technical**
+- **Battery Usage**: Event-driven design minimizes impact
+- **Android Overlay Reliability**: Extensive testing across device types needed
+- **iOS Limitations**: Accept Android-first approach, basic iOS functionality
+
+**User Experience**  
+- **Easy Circumvention**: Focus on helpful friction rather than absolute blocking
+
+## Success Metrics (Realistic)
+- **Technical**: Clean codebase with no analyzer warnings, stable overlay operation
+- **User**: Positive feedback on time-based blocking effectiveness
+- **Distribution**: Successful app store approval and initial user acquisition
+
+## Future Enhancement Opportunities
+- **Sleep analytics and insights** beyond basic blocking
+- **iOS parity** with native system integrations
+- **Family sharing and parental controls**
+- **Integration with smart home devices**
+
+---
+**Current Reality**: Solid time-based sleep blocking app with native Android overlay. Ready for distribution after removing unused posture detection components and final cleanup. 

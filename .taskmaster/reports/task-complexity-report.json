@@ -1,0 +1,165 @@
+{
+  "meta": {
+    "generatedAt": "2025-06-13T16:33:20.615Z",
+    "tasksAnalyzed": 1,
+    "totalTasks": 22,
+    "analysisCount": 19,
+    "thresholdScore": 5,
+    "projectName": "Taskmaster",
+    "usedResearch": true
+  },
+  "complexityAnalysis": [
+    {
+      "taskId": 1,
+      "taskTitle": "Remove Posture Detection Service and Dependencies",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down the removal of posture detection into granular steps: identify all posture-related files and classes, remove service and repository code, update dependency injection, clean up sensors_plus and vector_math dependencies, remove related permissions, update build configs, and verify with static analysis and regression testing.",
+      "reasoning": "This task requires deep codebase knowledge, touches multiple layers (service, UI, dependency management, permissions), and risks introducing regressions if not done systematically. It also involves updating build configuration and ensuring no broken references remain, which increases complexity."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Clean Up Posture-Related UI Components",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Expand by listing all posture-related UI screens, widgets, navigation routes, and assets. For each, specify removal or refactoring steps, update state management, and ensure navigation and UI flows remain intact. Include manual and automated UI testing.",
+      "reasoning": "This task spans UI, navigation, state management, and assets. It requires careful identification and removal to avoid breaking unrelated features, and thorough testing to ensure UI integrity."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Update Dismissal System to Timer-Only Implementation",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Detail each step: refactor DismissalService, remove posture logic from native and Flutter code, update UI, method channels, and persistence, and write comprehensive tests for all timer-based flows.",
+      "reasoning": "This task involves cross-platform changes (Flutter and native Android), state management, UI, and inter-process communication. Ensuring all posture-based logic is removed and timer-based flows are robust adds to the complexity."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Remove Posture Detection Test Cases",
+      "complexityScore": 6,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "List all test files and cases referencing posture detection. For each, specify removal or modification, update mocks, and ensure the remaining suite passes and covers all core features.",
+      "reasoning": "While mostly code removal, this task requires careful dependency analysis to avoid breaking unrelated tests and to maintain coverage, especially for complex test suites."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Fix Flutter Analyzer Warnings",
+      "complexityScore": 3,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Enumerate each warning, document the file and line, specify the fix, and outline the implementation steps. Include a final verification step to ensure zero warnings.",
+      "reasoning": "This is a straightforward cleanup task, mostly mechanical, with low risk and limited scope."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Optimize Dependencies and Build Configuration",
+      "complexityScore": 6,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down into dependency audit, update, removal, build config optimization, asset cleanup, and multi-device testing. For each, specify tools and verification steps.",
+      "reasoning": "This task involves dependency management, build system changes, and testing for regressions, which can introduce subtle issues if not handled carefully."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Enhance Native Android Overlay Stability",
+      "complexityScore": 9,
+      "recommendedSubtasks": 9,
+      "expansionPrompt": "Expand by researching overlay mechanisms per Android version and OEM, implementing permission and lifecycle handling, adding device-specific optimizations, security protections, and comprehensive cross-device testing.",
+      "reasoning": "This is a highly complex, platform-specific task requiring deep Android expertise, handling OS and OEM fragmentation, security, and extensive testing across devices and versions."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Improve Background Service Reliability",
+      "complexityScore": 8,
+      "recommendedSubtasks": 10,
+      "expansionPrompt": "Detail steps for auditing current services, implementing WorkManager and AlarmManager, foreground service refactoring, wake lock management, device-specific handling, persistent storage, and end-to-end testing.",
+      "reasoning": "Background service reliability on Android is challenging due to OS restrictions, OEM customizations, and the need for robust scheduling and persistence mechanisms."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Enhance Time-Based Blocking Logic",
+      "complexityScore": 7,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down into analysis of current logic, timezone and DST handling, overnight and conflict resolution, storage updates, and comprehensive edge case testing.",
+      "reasoning": "Time-based logic is prone to subtle bugs, especially with timezones, DST, and overnight schedules. Requires careful algorithm and data model updates, plus extensive testing."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Implement App Store Distribution Preparation",
+      "complexityScore": 6,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "List all required assets, metadata, and configuration steps for Play Store submission. For each, specify file formats, locations, and compliance checks. Include a review and resubmission loop.",
+      "reasoning": "This task is process-heavy but well-defined, involving asset preparation, configuration, and compliance checks, with moderate technical complexity."
+    },
+    {
+      "taskId": 11,
+      "taskTitle": "Comprehensive Device Testing and Compatibility",
+      "complexityScore": 7,
+      "recommendedSubtasks": 9,
+      "expansionPrompt": "Expand by identifying target devices/versions, defining and mapping test scenarios, configuring CI/device farms, writing and organizing tests, executing and documenting results.",
+      "reasoning": "Ensuring compatibility across many devices and OS versions is logistically complex, requiring detailed planning, automation, and thorough documentation."
+    },
+    {
+      "taskId": 12,
+      "taskTitle": "Final Release Preparation and Documentation",
+      "complexityScore": 5,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "List all documentation deliverables, assign owners, specify file paths and content requirements, and include a review and approval process before release.",
+      "reasoning": "This is a broad but well-scoped documentation and process task, requiring coordination but with limited technical risk."
+    },
+    {
+      "taskId": 15,
+      "taskTitle": "Add Developer Mode Feature to Sleep Mode App",
+      "complexityScore": 4,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the Developer Mode feature implementation into specific technical subtasks including UI development, state management, persistence logic, and testing components.",
+      "reasoning": "This task has moderate complexity (4/10) because it involves UI changes, state management with persistence, and conditional rendering. The code example provided is straightforward Flutter implementation. The task is well-defined with clear requirements and test strategy, but requires coordination between multiple components (settings screen, home screen, and shared preferences). The 5 recommended subtasks align with the natural divisions of work: settings UI implementation, state persistence logic, home screen conditional rendering, visual indicator implementation, and comprehensive testing."
+    },
+    {
+      "taskId": 16,
+      "taskTitle": "Update App Icon to Sleep-Mode Theme",
+      "complexityScore": 6,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down this multi-platform app icon update task into specific subtasks covering Android icon generation and configuration, iOS icon creation and setup, Flutter configuration updates, icon optimization processes, platform-specific testing procedures, cross-device validation steps, and store preparation requirements.",
+      "reasoning": "This task has moderate-high complexity due to multiple platform requirements (Android/iOS), various icon formats and sizes needed, configuration file updates, and comprehensive testing across different devices and launchers. While technically straightforward, it requires attention to platform-specific guidelines and thorough validation."
+    },
+    {
+      "taskId": 18,
+      "taskTitle": "Update API Integration to New 3-Endpoint Structure",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down the API integration update into granular subtasks covering: endpoint refactoring for each of the three endpoints, updating HTTP client logic, modifying request/response models, enhancing error handling, refactoring mock services, updating all documentation and integration guides, handling data migration and mapping, and updating configuration and authentication logic. Ensure each subtask is independently testable and clearly scoped.",
+      "reasoning": "This task involves significant refactoring across multiple layers of the application, including endpoint logic, data models, error handling, mock services, documentation, and configuration. Each area requires careful coordination to maintain backward compatibility and ensure robust testing. The breadth of changes, need for regression testing, and documentation updates contribute to a high complexity score. Expanding into at least eight subtasks will help manage risk and ensure thorough coverage of all impacted areas."
+    },
+    {
+      "taskId": 19,
+      "taskTitle": "Fix ShadcnUI Styling in Rails Backend",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Expand the task by adding a subtask to audit and document the current state of ShadcnUI component usage and styling in the Rails backend, ensuring all components are mapped and any discrepancies are noted before proceeding with fixes.",
+      "reasoning": "This task involves multiple technical steps (installation audit, Tailwind config, utility class addition, testing), but is well-scoped and already has four subtasks. Adding a documentation/audit subtask will help ensure all components are accounted for and discrepancies are tracked, reducing risk of missing edge cases."
+    },
+    {
+      "taskId": 20,
+      "taskTitle": "Ensure ShadcnUI Styling Integrity in Rails Backend with Tailwind CSS 4",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Expand the task by adding subtasks for: (1) auditing and documenting current component usage, (2) reviewing and updating CSS variable usage, (3) ensuring dark mode compatibility, (4) validating responsive behavior, (5) documenting configuration changes, and (6) regression testing across all affected components.",
+      "reasoning": "This task is broader and more detailed, covering installation, configuration, styling, documentation, and testing. It requires a thorough audit and documentation of current state, plus additional checks for CSS variables, dark mode, responsive design, and regression testing to ensure no existing functionality is broken."
+    },
+    {
+      "taskId": 21,
+      "taskTitle": "Fix ShadcnUI Styling in Rails Backend with Tailwind CSS 4",
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Expand the task by adding subtasks for: (1) auditing current component usage, (2) reviewing CSS variable usage, (3) validating responsive behavior, (4) documenting configuration changes, and (5) regression testing across all affected components.",
+      "reasoning": "This task is similar to task 19 but with a broader scope and dependencies. It requires a comprehensive audit, CSS variable review, responsive validation, documentation, and regression testing to ensure all styling and functionality are preserved."
+    },
+    {
+      "taskId": 22,
+      "taskTitle": "Resolve ShadcnUI and Tailwind CSS 4 Styling Issues in Rails Backend",
+      "complexityScore": 8,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the process of resolving ShadcnUI and Tailwind CSS 4 styling issues in a Rails backend into clear, actionable subtasks. Include steps for auditing installation/configuration, reviewing component styles, verifying utility class generation, aligning with the design system, updating documentation, and providing code examples.",
+      "reasoning": "This task involves multiple layers of complexity: integration of two major frontend frameworks (ShadcnUI and Tailwind CSS 4) within a Rails backend, detailed auditing of configuration files, comprehensive visual and functional review of UI components, and ensuring strict alignment with an external design system. Each step requires specialized knowledge and careful validation, increasing the overall complexity. The task also spans both code and documentation updates, necessitating at least six distinct subtasks to ensure thorough coverage and maintainability."
+    }
+  ]
+}

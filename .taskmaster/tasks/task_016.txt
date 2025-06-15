@@ -1,0 +1,116 @@
+# Task ID: 16
+# Title: Update App Icon to Sleep-Mode Theme
+# Status: done
+# Dependencies: 12
+# Priority: medium
+# Description: Replace the current app icon with the new sleep-mode.png icon across all Android and iOS platforms, updating launcher icons, adaptive icons, and iOS app icons with proper configurations.
+# Details:
+1. **Android Icon Updates:**
+   - Replace `android/app/src/main/res/mipmap-*/ic_launcher.png` files with resized versions of sleep-mode.png (48dp, 72dp, 96dp, 144dp, 192dp)
+   - Update adaptive icon resources: `ic_launcher_foreground.xml` and `ic_launcher_background.xml` to incorporate sleep-mode theme
+   - Generate and replace `mipmap-anydpi-v26/ic_launcher.xml` and `ic_launcher_round.xml` configurations
+   - Update notification icons in `drawable-*/` folders if they reference the app icon
+   - Verify `android/app/src/main/AndroidManifest.xml` references correct icon resources
+
+2. **iOS Icon Updates:**
+   - Replace all icon sizes in `ios/Runner/Assets.xcassets/AppIcon.appiconset/` with properly sized versions of sleep-mode.png
+   - Update `Contents.json` file to ensure all icon references are correct
+   - Generate required sizes: 20x20, 29x29, 40x40, 58x58, 60x60, 76x76, 80x80, 87x87, 120x120, 152x152, 167x167, 180x180, 1024x1024
+   - Ensure icons follow iOS Human Interface Guidelines (no transparency, proper corner radius handling)
+
+3. **Flutter Configuration:**
+   - Update `pubspec.yaml` flutter_icons configuration if present
+   - Verify `flutter_launcher_icons` package configuration points to new icon
+   - Run `flutter pub get` and `flutter pub run flutter_launcher_icons:main` if using automated icon generation
+
+4. **Icon Optimization:**
+   - Ensure sleep-mode.png is optimized for mobile (proper compression, appropriate resolution)
+   - Maintain consistent visual design across all platform sizes
+   - Verify icon visibility on various background colors and themes
+
+# Test Strategy:
+1. **Build Verification:**
+   - Clean and rebuild both Android and iOS projects to ensure no compilation errors
+   - Verify app installs successfully on both platforms without icon-related warnings
+
+2. **Visual Testing:**
+   - Install app on Android devices and verify new icon appears in launcher, app drawer, and recent apps
+   - Test on iOS devices to confirm icon displays correctly on home screen, app switcher, and Settings
+   - Check icon appearance on different device themes (light/dark mode)
+   - Verify adaptive icon behavior on Android (different shapes: circle, square, rounded square)
+
+3. **Platform-Specific Validation:**
+   - Android: Test on different launcher apps (Nova, Samsung One UI, Stock Android)
+   - iOS: Verify icon meets App Store requirements and displays correctly in App Store Connect
+   - Check notification icons still display properly and consistently
+
+4. **Cross-Device Testing:**
+   - Test on various screen densities and resolutions
+   - Verify icon quality on high-DPI displays
+   - Confirm no pixelation or distortion at any size
+
+5. **Store Preparation:**
+   - Validate that 1024x1024 iOS icon meets App Store guidelines
+   - Ensure Android Play Store icon (512x512) is properly generated and uploaded
+
+# Subtasks:
+## 1. Create Android App Icon Assets [done]
+### Dependencies: None
+### Description: Generate all required Android icon formats and sizes including adaptive icons, legacy icons, and notification icons according to Material Design guidelines
+### Details:
+Create icons in multiple densities (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi), generate adaptive icon foreground and background layers, create round icons, and ensure compliance with Android icon design specifications
+<info added on 2025-06-10T15:25:27.982Z>
+Updated pubspec.yaml configuration with sleep-mode theme settings: changed image_path to "assets/app_icon/sleep-mode.png", updated adaptive_icon_foreground to use sleep-mode.png, and configured splash screen for consistency. Ready to execute flutter pub run flutter_launcher_icons:main command to generate all Android platform-specific icons from the new sleep-mode.png source file.
+</info added on 2025-06-10T15:25:27.982Z>
+
+## 2. Configure Android Icon Settings [done]
+### Dependencies: 16.1
+### Description: Update Android manifest files and resource configurations to properly reference the new icon assets
+### Details:
+Modify AndroidManifest.xml to reference new icons, update build.gradle configurations, configure adaptive icon XML files, and ensure proper icon declarations for different Android versions
+<info added on 2025-06-10T15:27:06.059Z>
+✅ Configuration completed and verified:
+- AndroidManifest.xml correctly references @mipmap/ic_launcher
+- Adaptive icon XML properly configured in mipmap-anydpi-v26/ic_launcher.xml
+- Background color set to #E6E6FF (pastel blue) in colors.xml
+- All required Android icon densities generated (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)
+- Foreground drawable properly configured with 16% inset for safe area
+- Android icon configuration is fully functional and ready for testing
+</info added on 2025-06-10T15:27:06.059Z>
+
+## 3. Create iOS App Icon Assets [done]
+### Dependencies: None
+### Description: Generate all required iOS icon sizes and formats following Apple's Human Interface Guidelines for different devices and contexts
+### Details:
+Create icons for iPhone, iPad, Apple Watch, and other iOS devices in required sizes (20x20 to 1024x1024), ensure proper naming conventions, and maintain consistency with iOS design principles
+
+## 4. Configure iOS Icon Settings [done]
+### Dependencies: 16.3
+### Description: Update iOS project configuration files and Info.plist to properly integrate the new icon assets
+### Details:
+Update Info.plist with correct icon references, configure Xcode project settings, add icons to appropriate asset catalogs, and ensure proper icon bundle configuration
+
+## 5. Update Flutter Configuration [done]
+### Dependencies: 16.2, 16.4
+### Description: Modify Flutter project files and dependencies to integrate the new icons across both platforms
+### Details:
+Update pubspec.yaml with new icon assets, configure flutter_launcher_icons plugin if used, update platform-specific Flutter configurations, and ensure proper asset declarations
+
+## 6. Optimize Icon Assets [done]
+### Dependencies: 16.1, 16.3
+### Description: Compress and optimize all icon files for optimal file size while maintaining visual quality across platforms
+### Details:
+Apply lossless compression to PNG files, optimize SVG assets if used, ensure consistent color profiles, validate file sizes meet platform requirements, and maintain visual consistency across all sizes
+
+## 7. Conduct Platform-Specific Testing [done]
+### Dependencies: 16.5, 16.6
+### Description: Test icon display and functionality on various Android launchers and iOS devices to ensure proper rendering
+### Details:
+Test on different Android launchers (Nova, Samsung, Pixel), verify adaptive icon behavior, test on various iOS devices and versions, check icon appearance in different contexts (home screen, settings, notifications)
+
+## 8. Prepare Store Assets and Validation [done]
+### Dependencies: 16.7
+### Description: Create store-ready icon assets and perform final cross-device validation before app store submission
+### Details:
+Generate high-resolution icons for Google Play Store and Apple App Store, create promotional graphics if needed, perform final validation across multiple devices and OS versions, document icon specifications for future reference
+

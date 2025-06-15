@@ -1,0 +1,60 @@
+# Task ID: 2
+# Title: Clean Up Posture-Related UI Components
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Remove all UI components, screens, and widgets related to posture detection functionality
+# Details:
+1. Remove posture detection settings screens/widgets
+2. Remove posture-related options from dismissal UI
+3. Update navigation routes to remove posture screens
+4. Clean up any posture-related state management (Provider/Riverpod)
+5. Remove posture icons and assets from assets folder
+6. Update main app navigation to remove posture detection entry points
+
+# Test Strategy:
+Manual UI testing to ensure no broken navigation or missing screens. Test all user flows to verify posture detection options are completely removed. Verify app builds and runs without UI errors.
+
+# Subtasks:
+## 1. Inventory all posture-related UI screens [done]
+### Dependencies: None
+### Description: Identify and document all UI screens that implement sovereign, transient, and daemonic posture patterns
+### Details:
+Create a comprehensive inventory of all screens that use posture-related design patterns. For each screen, document its current posture type (sovereign, transient, daemonic), its purpose, and its relationship to other screens. Include screenshots and wireframes for reference.
+
+## 2. Catalog posture-specific widgets and components [done]
+### Dependencies: 2.1
+### Description: Identify all UI widgets and components that implement posture-specific behaviors
+### Details:
+Document all widgets, components, and UI elements that implement posture-specific behaviors. For each component, note its current implementation, behavioral characteristics, and which screens use it. Tag components for removal or refactoring based on their usage patterns.
+
+## 3. Map navigation routes and transitions [done]
+### Dependencies: 2.1
+### Description: Document all navigation paths between posture-related screens and transition behaviors
+### Details:
+Create a navigation map showing all routes between posture-related screens. Document transition animations, modal behaviors, and state preservation during navigation. Identify navigation patterns that will need updating after posture-related changes.
+
+## 4. Inventory posture-related assets [done]
+### Dependencies: 2.1, 2.2
+### Description: Catalog all visual and code assets related to posture implementations
+### Details:
+Identify all assets related to posture implementations including images, icons, animations, CSS files, and JavaScript modules. Document dependencies between assets and determine which can be safely removed versus which need refactoring.
+
+## 5. Develop refactoring and removal plan [done]
+### Dependencies: 2.1, 2.2, 2.3, 2.4
+### Description: Create detailed steps for removing or refactoring each posture-related element
+### Details:
+Develop a comprehensive plan detailing the removal or refactoring steps for each identified element. Include state management updates, navigation flow preservation strategies, and UI consistency considerations. Prioritize changes based on dependency relationships and impact.
+
+## 6. Create UI testing strategy [done]
+### Dependencies: 2.5
+### Description: Develop manual and automated testing procedures for validating UI integrity
+### Details:
+Design a testing strategy that includes both manual test cases and automated UI tests. Create test scenarios that verify navigation flows remain intact, UI components render correctly, and state management functions properly after changes. Include visual regression testing to catch unexpected UI changes.
+
+## 7. Implement changes and execute testing [done]
+### Dependencies: 2.5, 2.6
+### Description: Execute the refactoring plan and perform comprehensive testing
+### Details:
+Implement the removal and refactoring steps according to the plan. Update state management code, navigation routes, and UI flows as needed. Execute the testing strategy to verify all changes maintain UI integrity. Document any issues encountered and their resolutions.
+

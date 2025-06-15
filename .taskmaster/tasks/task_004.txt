@@ -1,0 +1,54 @@
+# Task ID: 4
+# Title: Remove Posture Detection Test Cases
+# Status: done
+# Dependencies: 1, 2, 3
+# Priority: medium
+# Description: Clean up test suite by removing all posture detection related test cases and updating existing tests
+# Details:
+1. Remove posture detection unit tests from test directory
+2. Remove posture-related widget tests
+3. Update integration tests to remove posture detection scenarios
+4. Update sleep window logic tests to remove posture dismissal test cases
+5. Ensure remaining 27+ sleep window test scenarios still pass
+6. Update test mocks to remove posture detector mocks
+
+# Test Strategy:
+Run full test suite with 'flutter test' to ensure all tests pass. Verify test coverage remains comprehensive for core sleep blocking functionality. Check that no test files reference removed posture detection components.
+
+# Subtasks:
+## 1. Identify all test files with posture detection tests [done]
+### Dependencies: None
+### Description: Scan the project directory to locate all test files that contain posture detection related test cases
+### Details:
+Search through test/, test/unit/, test/widget/, and test/integration/ directories for files containing keywords like 'pose', 'posture', 'body_detection', or 'pose_estimation'. Create a comprehensive list with file paths and brief descriptions of what each test file covers.
+
+## 2. Analyze test dependencies and coverage [done]
+### Dependencies: 4.1
+### Description: Determine which tests can be safely removed without affecting overall test coverage
+### Details:
+For each identified test file, analyze dependencies between tests and determine which posture detection tests can be removed without breaking other tests. Create a dependency graph and identify tests that might need modification rather than removal.
+
+## 3. Modify unit tests for pose detection [done]
+### Dependencies: 4.2
+### Description: Update unit test files to remove or modify posture detection specific test cases
+### Details:
+In each unit test file, identify specific test cases to remove or modify. For each test case, document the exact function name, line numbers, and whether it should be removed entirely or modified. For tests requiring modification, specify the exact changes needed.
+
+## 4. Update widget tests for pose detection UI [done]
+### Dependencies: 4.2
+### Description: Modify widget test files to remove or update UI component tests related to posture detection
+### Details:
+For each widget test file, identify test cases testing UI components related to posture detection. Document the widget being tested, test function names, and specific modifications needed. For tests that verify UI behavior with pose detection, determine if they should be removed or modified to test alternative functionality.
+
+## 5. Revise integration tests [done]
+### Dependencies: 4.2
+### Description: Update integration tests that include posture detection functionality
+### Details:
+For each integration test file, identify test scenarios that involve posture detection. Document the test names, file paths, and specific sections to modify. For end-to-end tests that depend on posture detection, determine alternative flows to test or whether the test should be removed entirely.
+
+## 6. Verify test suite integrity after modifications [done]
+### Dependencies: 4.3, 4.4, 4.5
+### Description: Run the modified test suite to ensure all remaining tests pass successfully
+### Details:
+After all modifications, run the complete test suite to verify that no tests are broken. Document any failures and fix them. Update test coverage reports to ensure critical functionality remains well-tested. Create a summary report of all changes made to the test suite.
+

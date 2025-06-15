@@ -1,0 +1,54 @@
+# Task ID: 6
+# Title: Optimize Dependencies and Build Configuration
+# Status: done
+# Dependencies: 1, 5
+# Priority: medium
+# Description: Remove unused dependencies, optimize pubspec.yaml, and clean up build configuration for distribution
+# Details:
+1. Audit pubspec.yaml dependencies and remove unused packages
+2. Update dependency versions to latest stable releases (flutter_local_notifications, battery_plus, etc.)
+3. Optimize Android build.gradle for release builds
+4. Configure ProGuard/R8 for code shrinking and obfuscation
+5. Remove unused assets and reduce APK size
+6. Update minimum SDK versions if needed for latest dependencies
+
+# Test Strategy:
+Build release APK and verify size optimization. Test app functionality with optimized build. Run dependency audit tools to ensure no security vulnerabilities. Test on minimum supported Android version.
+
+# Subtasks:
+## 1. Audit current dependencies [done]
+### Dependencies: None
+### Description: Identify outdated and unused dependencies in the Flutter project
+### Details:
+Run 'flutter pub outdated' to identify packages that can be upgraded. Review the pubspec.yaml file to identify dependencies that are no longer needed. Document all dependencies that need updating with their current and target versions.
+
+## 2. Update Flutter dependencies [done]
+### Dependencies: 6.1
+### Description: Update all Flutter packages to their latest compatible versions
+### Details:
+Run 'flutter update-packages --force-upgrade' to update all dependencies. For dependencies that need to be pinned to specific versions, modify the kManuallyPinnedDependencies file with appropriate issue links. Update the pubspec.yaml file with any specific version constraints needed.
+
+## 3. Update Android Gradle configuration [done]
+### Dependencies: 6.1
+### Description: Update Android-specific build configurations for compatibility
+### Details:
+Review and update the android/build.gradle and android/app/build.gradle files. Update the Gradle version in android/gradle/wrapper/gradle-wrapper.properties. Ensure compileSdkVersion, minSdkVersion, and targetSdkVersion are set to appropriate values in the app-level build.gradle file.
+
+## 4. Optimize Android build configuration for release [done]
+### Dependencies: 6.3
+### Description: Configure the Android build for production release
+### Details:
+Configure signing keys in android/app/build.gradle. Set up ProGuard rules in android/app/proguard-rules.pro. Enable R8 code shrinking and configure split APKs if needed. Update the AndroidManifest.xml with appropriate permissions and features for release.
+
+## 5. Test dependency updates on multiple devices [done]
+### Dependencies: 6.2, 6.3, 6.4
+### Description: Verify that the updated dependencies work correctly across devices
+### Details:
+Test the app on multiple Android API levels (minimum supported to latest). Verify that all features dependent on updated packages function correctly. Check for any performance regressions or UI inconsistencies introduced by dependency updates.
+
+## 6. Create release build and validate [done]
+### Dependencies: 6.5
+### Description: Generate a release build and perform final validation
+### Details:
+Run 'flutter build appbundle' to create a release build. Validate the app bundle using the Play Console's internal testing track. Check the app size and performance metrics. Ensure all dependencies are properly integrated in the release build by testing all app features.
+
