@@ -1,61 +1,11 @@
 # Task ID: 10
-# Title: Implement App Store Distribution Preparation
-# Status: done
-# Dependencies: 5, 6, 7
-# Priority: medium
-# Description: Prepare all necessary assets, metadata, and configurations required for Google Play Store distribution
+# Title: Setup Flutter-Rails API Integration
+# Status: pending
+# Dependencies: 4
+# Priority: high
+# Description: Implement HTTP client and authentication in Flutter app to connect with Rails backend
 # Details:
-1. Create app store listing with compelling description emphasizing time-based blocking
-2. Generate required icon sizes (48dp, 72dp, 96dp, 144dp, 192dp, 512dp)
-3. Create feature graphic and promotional screenshots
-4. Configure app signing with upload key for Play Store
-5. Set up privacy policy and terms of service
-6. Configure app bundle (AAB) generation for optimal distribution
-7. Add required Play Store metadata and categorization
+Add http package (^1.1.0) and dio (^5.4.0) for robust HTTP client with interceptors. Create ApiService class with base URL configuration, request/response interceptors, and error handling. Implement AuthService for token management using flutter_secure_storage (^9.2.2). Add ApiClient with methods for authentication (login, register, logout) and sleep session CRUD operations. Implement automatic token refresh logic with retry mechanism. Add network connectivity checking using connectivity_plus (^6.0.5). Create data models matching Rails API response format. Implement offline queue for failed requests with background sync.
 
 # Test Strategy:
-Validate all required assets meet Google Play requirements. Test AAB installation on test devices. Verify app signing configuration. Review privacy policy compliance with data collection practices.
-
-# Subtasks:
-## 1. Update Target API Level and Dependencies [done]
-### Dependencies: None
-### Description: Ensure the Flutter/Android app targets the required API level and updates all dependencies accordingly.
-### Details:
-Update the `android/app/build.gradle` file to set `targetSdkVersion` and `compileSdkVersion` to 34 (Android 14). Verify all dependencies in `pubspec.yaml` and Gradle files are compatible with API level 34. Test the app for compatibility issues.
-
-## 2. Prepare App Icons and Feature Graphics [done]
-### Dependencies: 10.1
-### Description: Create and place required image assets in the correct directories with proper formats and resolutions.
-### Details:
-Generate launcher icons using `flutter_launcher_icons` and place them in `android/app/src/main/res/mipmap-*`. Prepare a 1024x500px feature graphic (PNG, no alpha) for Play Store listing. Store the feature graphic in a separate assets folder for upload during Play Console submission.
-
-## 3. Configure App Manifest and Permissions [done]
-### Dependencies: 10.1
-### Description: Edit the AndroidManifest.xml to declare necessary permissions and metadata as per Play Store requirements.
-### Details:
-Update `android/app/src/main/AndroidManifest.xml` to include only required permissions. Remove unused permissions. Add intent filters and metadata for deep links or special features if needed. Ensure privacy-related permissions are justified and documented.
-
-## 4. Generate Signed Release APK/AAB [done]
-### Dependencies: 10.1, 10.2, 10.3
-### Description: Build a signed release version of the app in the required format for Play Store submission.
-### Details:
-Create a keystore file and configure signing in `android/key.properties` and `android/app/build.gradle`. Run `flutter build appbundle` to generate an AAB file at `build/app/outputs/bundle/release/app-release.aab`. Verify the build is signed and optimized.
-
-## 5. Prepare Store Listing Metadata and Screenshots [done]
-### Dependencies: 10.2
-### Description: Draft and format all required Play Store listing content and capture device screenshots.
-### Details:
-Write app title (max 30 chars), short description (max 80 chars), and full description (max 4000 chars) in a text file. Prepare privacy policy URL. Capture at least 2-8 screenshots per device type (phone, tablet) in PNG or JPEG, 320px–3840px width, max 8MB each. Store all assets in a `play_store_assets/` directory.
-
-## 6. Complete Play Console Submission Forms [done]
-### Dependencies: 10.4, 10.5
-### Description: Fill out all required forms and upload assets in the Google Play Console.
-### Details:
-Log in to Play Console. Create a new app entry. Upload the signed AAB file. Enter all metadata, upload feature graphic and screenshots, provide privacy policy URL, and complete content rating, target audience, and data safety forms. Ensure all fields are filled as per Play Store requirements.
-
-## 7. Review and Address Policy Compliance [done]
-### Dependencies: None
-### Description: Verify compliance with the latest Google Play policies and address any flagged issues.
-### Details:
-Review the Play Console's pre-launch report and policy status. Address any warnings or errors, such as missing disclosures, permission misuse, or API level issues. Make necessary code or configuration changes, rebuild, and resubmit if required.
-
+Test API calls with valid/invalid tokens, network error handling, offline functionality, token refresh mechanism, and data model serialization/deserialization.

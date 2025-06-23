@@ -1,118 +1,14 @@
 {
   "meta": {
-    "generatedAt": "2025-06-13T16:33:20.615Z",
-    "tasksAnalyzed": 1,
-    "totalTasks": 22,
-    "analysisCount": 19,
-    "thresholdScore": 5,
+    "generatedAt": "2025-06-15T09:46:55.713Z",
+    "tasksAnalyzed": 15,
+    "totalTasks": 15,
+    "analysisCount": 21,
+    "thresholdScore": 6,
     "projectName": "Taskmaster",
     "usedResearch": true
   },
   "complexityAnalysis": [
-    {
-      "taskId": 1,
-      "taskTitle": "Remove Posture Detection Service and Dependencies",
-      "complexityScore": 8,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "Break down the removal of posture detection into granular steps: identify all posture-related files and classes, remove service and repository code, update dependency injection, clean up sensors_plus and vector_math dependencies, remove related permissions, update build configs, and verify with static analysis and regression testing.",
-      "reasoning": "This task requires deep codebase knowledge, touches multiple layers (service, UI, dependency management, permissions), and risks introducing regressions if not done systematically. It also involves updating build configuration and ensuring no broken references remain, which increases complexity."
-    },
-    {
-      "taskId": 2,
-      "taskTitle": "Clean Up Posture-Related UI Components",
-      "complexityScore": 7,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Expand by listing all posture-related UI screens, widgets, navigation routes, and assets. For each, specify removal or refactoring steps, update state management, and ensure navigation and UI flows remain intact. Include manual and automated UI testing.",
-      "reasoning": "This task spans UI, navigation, state management, and assets. It requires careful identification and removal to avoid breaking unrelated features, and thorough testing to ensure UI integrity."
-    },
-    {
-      "taskId": 3,
-      "taskTitle": "Update Dismissal System to Timer-Only Implementation",
-      "complexityScore": 8,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "Detail each step: refactor DismissalService, remove posture logic from native and Flutter code, update UI, method channels, and persistence, and write comprehensive tests for all timer-based flows.",
-      "reasoning": "This task involves cross-platform changes (Flutter and native Android), state management, UI, and inter-process communication. Ensuring all posture-based logic is removed and timer-based flows are robust adds to the complexity."
-    },
-    {
-      "taskId": 4,
-      "taskTitle": "Remove Posture Detection Test Cases",
-      "complexityScore": 6,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "List all test files and cases referencing posture detection. For each, specify removal or modification, update mocks, and ensure the remaining suite passes and covers all core features.",
-      "reasoning": "While mostly code removal, this task requires careful dependency analysis to avoid breaking unrelated tests and to maintain coverage, especially for complex test suites."
-    },
-    {
-      "taskId": 5,
-      "taskTitle": "Fix Flutter Analyzer Warnings",
-      "complexityScore": 3,
-      "recommendedSubtasks": 4,
-      "expansionPrompt": "Enumerate each warning, document the file and line, specify the fix, and outline the implementation steps. Include a final verification step to ensure zero warnings.",
-      "reasoning": "This is a straightforward cleanup task, mostly mechanical, with low risk and limited scope."
-    },
-    {
-      "taskId": 6,
-      "taskTitle": "Optimize Dependencies and Build Configuration",
-      "complexityScore": 6,
-      "recommendedSubtasks": 7,
-      "expansionPrompt": "Break down into dependency audit, update, removal, build config optimization, asset cleanup, and multi-device testing. For each, specify tools and verification steps.",
-      "reasoning": "This task involves dependency management, build system changes, and testing for regressions, which can introduce subtle issues if not handled carefully."
-    },
-    {
-      "taskId": 7,
-      "taskTitle": "Enhance Native Android Overlay Stability",
-      "complexityScore": 9,
-      "recommendedSubtasks": 9,
-      "expansionPrompt": "Expand by researching overlay mechanisms per Android version and OEM, implementing permission and lifecycle handling, adding device-specific optimizations, security protections, and comprehensive cross-device testing.",
-      "reasoning": "This is a highly complex, platform-specific task requiring deep Android expertise, handling OS and OEM fragmentation, security, and extensive testing across devices and versions."
-    },
-    {
-      "taskId": 8,
-      "taskTitle": "Improve Background Service Reliability",
-      "complexityScore": 8,
-      "recommendedSubtasks": 10,
-      "expansionPrompt": "Detail steps for auditing current services, implementing WorkManager and AlarmManager, foreground service refactoring, wake lock management, device-specific handling, persistent storage, and end-to-end testing.",
-      "reasoning": "Background service reliability on Android is challenging due to OS restrictions, OEM customizations, and the need for robust scheduling and persistence mechanisms."
-    },
-    {
-      "taskId": 9,
-      "taskTitle": "Enhance Time-Based Blocking Logic",
-      "complexityScore": 7,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "Break down into analysis of current logic, timezone and DST handling, overnight and conflict resolution, storage updates, and comprehensive edge case testing.",
-      "reasoning": "Time-based logic is prone to subtle bugs, especially with timezones, DST, and overnight schedules. Requires careful algorithm and data model updates, plus extensive testing."
-    },
-    {
-      "taskId": 10,
-      "taskTitle": "Implement App Store Distribution Preparation",
-      "complexityScore": 6,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "List all required assets, metadata, and configuration steps for Play Store submission. For each, specify file formats, locations, and compliance checks. Include a review and resubmission loop.",
-      "reasoning": "This task is process-heavy but well-defined, involving asset preparation, configuration, and compliance checks, with moderate technical complexity."
-    },
-    {
-      "taskId": 11,
-      "taskTitle": "Comprehensive Device Testing and Compatibility",
-      "complexityScore": 7,
-      "recommendedSubtasks": 9,
-      "expansionPrompt": "Expand by identifying target devices/versions, defining and mapping test scenarios, configuring CI/device farms, writing and organizing tests, executing and documenting results.",
-      "reasoning": "Ensuring compatibility across many devices and OS versions is logistically complex, requiring detailed planning, automation, and thorough documentation."
-    },
-    {
-      "taskId": 12,
-      "taskTitle": "Final Release Preparation and Documentation",
-      "complexityScore": 5,
-      "recommendedSubtasks": 8,
-      "expansionPrompt": "List all documentation deliverables, assign owners, specify file paths and content requirements, and include a review and approval process before release.",
-      "reasoning": "This is a broad but well-scoped documentation and process task, requiring coordination but with limited technical risk."
-    },
-    {
-      "taskId": 15,
-      "taskTitle": "Add Developer Mode Feature to Sleep Mode App",
-      "complexityScore": 4,
-      "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the Developer Mode feature implementation into specific technical subtasks including UI development, state management, persistence logic, and testing components.",
-      "reasoning": "This task has moderate complexity (4/10) because it involves UI changes, state management with persistence, and conditional rendering. The code example provided is straightforward Flutter implementation. The task is well-defined with clear requirements and test strategy, but requires coordination between multiple components (settings screen, home screen, and shared preferences). The 5 recommended subtasks align with the natural divisions of work: settings UI implementation, state persistence logic, home screen conditional rendering, visual indicator implementation, and comprehensive testing."
-    },
     {
       "taskId": 16,
       "taskTitle": "Update App Icon to Sleep-Mode Theme",
@@ -160,6 +56,126 @@
       "recommendedSubtasks": 6,
       "expansionPrompt": "Break down the process of resolving ShadcnUI and Tailwind CSS 4 styling issues in a Rails backend into clear, actionable subtasks. Include steps for auditing installation/configuration, reviewing component styles, verifying utility class generation, aligning with the design system, updating documentation, and providing code examples.",
       "reasoning": "This task involves multiple layers of complexity: integration of two major frontend frameworks (ShadcnUI and Tailwind CSS 4) within a Rails backend, detailed auditing of configuration files, comprehensive visual and functional review of UI components, and ensuring strict alignment with an external design system. Each step requires specialized knowledge and careful validation, increasing the overall complexity. The task also spans both code and documentation updates, necessitating at least six distinct subtasks to ensure thorough coverage and maintainability."
+    },
+    {
+      "taskId": 1,
+      "taskTitle": "Setup Rails API Backend Infrastructure",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down the Rails API backend setup into subtasks such as: initializing the Rails project, configuring the Gemfile, setting up database configurations for different environments, configuring CORS, initializing Git and folder structure, and verifying server/database connectivity.",
+      "reasoning": "Setting up backend infrastructure involves multiple configuration steps, environment-specific setups, and integration points (e.g., CORS for frontend compatibility). While Rails provides conventions, the task requires careful attention to detail and is foundational for all dependent tasks."
+    },
+    {
+      "taskId": 2,
+      "taskTitle": "Design Database Schema for User Management",
+      "complexityScore": 5,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Expand this task into subtasks such as: designing the User model, designing the SleepSession model, adding indexes and constraints, implementing model validations, and testing migrations and associations.",
+      "reasoning": "Database schema design is moderately complex, involving both structural and validation logic, but Rails' conventions and generators streamline much of the process."
+    },
+    {
+      "taskId": 3,
+      "taskTitle": "Implement User Authentication System",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Break down authentication into subtasks: building registration, login, and logout endpoints; implementing JWT token logic; adding authentication helpers; integrating bcrypt for password hashing; handling errors; and testing all flows.",
+      "reasoning": "Authentication is security-critical and involves multiple moving parts (JWT, password hashing, error handling, session management), making it more complex than basic CRUD."
+    },
+    {
+      "taskId": 4,
+      "taskTitle": "Create Sleep Session API Endpoints",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Expand into subtasks: generating controller and routes, implementing CRUD actions, adding pagination, filtering, and sorting, handling errors, implementing bulk operations, and testing endpoints.",
+      "reasoning": "Developing robust, feature-rich API endpoints with filtering, pagination, and bulk operations requires careful design and thorough testing."
+    },
+    {
+      "taskId": 5,
+      "taskTitle": "Setup React Frontend Application",
+      "complexityScore": 5,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down into subtasks: initializing the React project, installing dependencies, configuring Tailwind CSS, setting up folder structure, and verifying development/build processes.",
+      "reasoning": "Frontend setup is straightforward with modern tooling but involves several configuration steps to ensure a solid foundation."
+    },
+    {
+      "taskId": 6,
+      "taskTitle": "Implement Authentication UI Components",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Expand into subtasks: creating AuthContext, building LoginForm and RegisterForm, implementing ProtectedRoute, adding AuthLayout, handling token storage, and styling components.",
+      "reasoning": "Authentication UI requires state management, form validation, error handling, and secure token storage, making it moderately complex."
+    },
+    {
+      "taskId": 7,
+      "taskTitle": "Build Dashboard Layout and Navigation",
+      "complexityScore": 5,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down into subtasks: creating DashboardLayout, implementing sidebar and header, adding navigation items, handling responsive design, and ensuring accessibility.",
+      "reasoning": "Dashboard layout is a standard frontend task but requires attention to responsive design and accessibility."
+    },
+    {
+      "taskId": 8,
+      "taskTitle": "Create Sleep Session Data Display Components",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Expand into subtasks: building list and card views, implementing stats component, adding filtering and pagination, handling empty states, enabling data export, and real-time updates.",
+      "reasoning": "Displaying and managing dynamic data with filtering, pagination, export, and real-time updates adds significant complexity."
+    },
+    {
+      "taskId": 9,
+      "taskTitle": "Implement Settings Management Interface",
+      "complexityScore": 6,
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Break down into subtasks: creating SettingsPage, building TimePickerComponent, implementing notification toggles, handling form validation, integrating with SettingsAPI, and adding sync/reset features.",
+      "reasoning": "Settings management involves multiple UI components, validation, API integration, and state management."
+    },
+    {
+      "taskId": 10,
+      "taskTitle": "Setup Flutter-Rails API Integration",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Expand into subtasks: adding HTTP libraries, creating ApiService and AuthService, implementing token management, building CRUD methods, handling token refresh, adding connectivity checks, modeling data, and implementing offline queue.",
+      "reasoning": "Integrating Flutter with a Rails API, including authentication, error handling, and offline support, is technically demanding and cross-platform."
+    },
+    {
+      "taskId": 11,
+      "taskTitle": "Implement Data Synchronization Logic",
+      "complexityScore": 9,
+      "recommendedSubtasks": 9,
+      "expansionPrompt": "Break down into subtasks: building SyncService, implementing upload/download logic, conflict resolution, sync status tracking, background sync, incremental sync, progress indicators, error handling, and retry logic.",
+      "reasoning": "Bidirectional sync with conflict resolution, background processing, and error handling is highly complex and critical for data integrity."
+    },
+    {
+      "taskId": 12,
+      "taskTitle": "Add User Profile Management",
+      "complexityScore": 7,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Expand into subtasks: creating ProfilePage, implementing ChangePasswordForm, building AccountDeletionModal, integrating ProfileAPI, adding email change and verification, handling profile picture upload, and adding activity log and privacy controls.",
+      "reasoning": "Profile management covers sensitive operations (password, email, deletion), file uploads, and privacy features, requiring careful design."
+    },
+    {
+      "taskId": 13,
+      "taskTitle": "Implement Error Handling and Offline Support",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Break down into subtasks: creating ErrorBoundary components, implementing global error handling, adding offline detection and retry, building user feedback UI, adding network status indicators, error logging, graceful degradation, and notifications.",
+      "reasoning": "Comprehensive error handling and offline support are cross-cutting concerns that require robust architecture and thorough testing."
+    },
+    {
+      "taskId": 14,
+      "taskTitle": "Setup Production Deployment Configuration",
+      "complexityScore": 8,
+      "recommendedSubtasks": 8,
+      "expansionPrompt": "Expand into subtasks: configuring Rails production settings, setting up PostgreSQL and Redis, configuring Puma, adding SSL and security headers, optimizing React build, setting up CDN, implementing backups, and configuring monitoring and rate limiting.",
+      "reasoning": "Production deployment involves security, performance, scalability, and reliability considerations across multiple services."
+    },
+    {
+      "taskId": 15,
+      "taskTitle": "Create Testing Suite and Documentation",
+      "complexityScore": 9,
+      "recommendedSubtasks": 9,
+      "expansionPrompt": "Break down into subtasks: setting up RSpec for Rails, writing API request specs, adding React component tests, implementing end-to-end tests, generating API documentation, writing deployment guides, adding code coverage, creating troubleshooting guides, and integrating tests into CI/CD.",
+      "reasoning": "Comprehensive testing and documentation span backend, frontend, and deployment, requiring coordination, coverage, and automation for quality assurance."
     }
   ]
 }

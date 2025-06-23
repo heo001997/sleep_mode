@@ -1,66 +1,58 @@
 # Task ID: 3
-# Title: Update Dismissal System to Timer-Only Implementation
-# Status: done
-# Dependencies: 1, 2
+# Title: Implement User Authentication System
+# Status: in-progress
+# Dependencies: 2
 # Priority: high
-# Description: Simplify dismissal system to use only timer-based dismissal, removing any posture detection dismissal methods
+# Description: Build secure session-based authentication with JWT tokens for mobile app integration
 # Details:
-1. Update DismissalService to only support timer-based dismissal (5/10/15 minutes)
-2. Remove posture detection dismissal logic from FullScreenAlarmActivity.kt
-3. Simplify dismissal UI to show only timer options
-4. Update method channel communication to remove posture-related messages
-5. Ensure dismissal state persistence only tracks timer-based dismissals
-6. Update dismissal configuration to remove posture detection settings
+Create AuthenticationController with register, login, logout actions. Implement JWT token generation using `jwt` gem with 24-hour expiration. Add ApplicationController concern for authentication: `authenticate_user!` method, `current_user` helper. Create routes: POST /api/auth/register, POST /api/auth/login, DELETE /api/auth/logout, GET /api/auth/me. Use bcrypt for password hashing. Implement secure session management with HttpOnly cookies for web and JWT tokens for mobile. Add proper error handling for invalid credentials, expired tokens, and validation failures.
 
 # Test Strategy:
-Test all dismissal duration options (5/10/15 minutes). Verify dismissal state persists across app restarts. Test smart re-triggering after dismissal period expires. Ensure overlay reappears correctly after timer expires.
+Test registration with valid/invalid data, login with correct/incorrect credentials, token expiration handling, logout functionality. Use Postman/curl to verify API responses and token validation.
 
 # Subtasks:
-## 1. Analyze current DismissalService implementation [done]
+## 1. Build Registration Endpoint [done]
 ### Dependencies: None
-### Description: Review the existing DismissalService code to identify all posture-related logic and dependencies that need to be removed.
+### Description: Develop an API endpoint that allows new users to register by providing necessary credentials (e.g., username, email, password). Ensure input validation and prepare for secure password handling.
 ### Details:
-Document the current architecture, identify all posture-related methods and properties, map out dependencies with other components, and create a refactoring plan. Focus on understanding how the service currently interacts with native code through method channels.
+This endpoint should accept user details, validate them, and prepare the data for secure storage, including password hashing.
+<info added on 2025-06-15T10:07:06.243Z>
+Registration endpoint has been successfully implemented and is fully functional. The endpoint accepts user details, validates them, and securely stores user data with proper password hashing using bcrypt. All authentication endpoints are now operational including registration, login, user profile retrieval, and logout. JWT token system is working with 24-hour expiration and proper Bearer token format. Security implementation includes bcrypt password hashing and comprehensive JWT token validation with expiration checking.
+</info added on 2025-06-15T10:07:06.243Z>
 
-## 2. Remove posture logic from native Android code [done]
+## 2. Integrate Bcrypt for Password Hashing [pending]
 ### Dependencies: 3.1
-### Description: Identify and remove all posture-related code from the native Android implementation.
+### Description: Implement bcrypt to securely hash user passwords before storing them in the database, and verify passwords during login.
 ### Details:
-Remove posture sensors, listeners, and related logic from Java/Kotlin files. Update any native method channel implementations that handle posture-related events. Ensure that removing this code doesn't break other functionality.
+Use bcrypt to hash passwords during registration and to compare hashes during login attempts.
 
-## 3. Refactor DismissalService to use timer-based approach [done]
-### Dependencies: 3.1
-### Description: Redesign the DismissalService to rely solely on timer-based logic instead of posture detection.
+## 3. Build Login Endpoint [pending]
+### Dependencies: 3.2
+### Description: Create an API endpoint for user login that authenticates credentials and issues a JWT upon successful authentication.
 ### Details:
-Implement timer management, state tracking, and event handling. Ensure the service properly handles app lifecycle events (pause, resume, etc.). Create clean interfaces for other components to interact with the service.
+This endpoint should verify the user's credentials using bcrypt and, if valid, generate a JWT for the session.
 
-## 4. Update method channels for timer-based communication [done]
-### Dependencies: 3.2, 3.3
-### Description: Modify existing method channels or create new ones to support the timer-based approach.
-### Details:
-Update method channel handlers on both Flutter and native sides. Implement proper error handling and ensure bidirectional communication works correctly. Document the new method channel API.
-
-## 5. Update UI components to work with refactored service [done]
+## 4. Implement JWT Token Logic [pending]
 ### Dependencies: 3.3
-### Description: Modify all UI components that previously relied on posture information to work with the new timer-based approach.
+### Description: Set up JWT generation, signing, and validation logic for issuing tokens during login and verifying them on protected routes.
 ### Details:
-Update widgets, screens, and UI logic to consume the refactored DismissalService. Ensure UI properly reflects timer states and transitions. Implement any new UI elements needed for timer visualization or control.
+Use secure signing keys and include necessary claims (iss, exp, aud, sub, etc.) in the JWT. Ensure proper validation of tokens on each request.
 
-## 6. Update persistence layer for timer settings [done]
-### Dependencies: 3.3
-### Description: Modify the persistence layer to store and retrieve timer-related settings instead of posture settings.
+## 5. Add Authentication Helpers [pending]
+### Dependencies: 3.4
+### Description: Develop helper functions or middleware for extracting, validating, and decoding JWTs from incoming requests.
 ### Details:
-Update database schemas or shared preferences as needed. Implement migration strategy for existing users. Ensure settings are properly persisted across app restarts.
+Helpers should handle token extraction from headers/cookies, validate signatures and claims, and attach user context to requests.
 
-## 7. Write unit and integration tests for timer-based flows [done]
-### Dependencies: 3.3, 3.4, 3.5, 3.6
-### Description: Create comprehensive test suite for all timer-based functionality in the refactored service.
+## 6. Build Logout Endpoint [pending]
+### Dependencies: 3.5
+### Description: Implement an endpoint or mechanism to handle user logout, such as token invalidation or client-side token removal.
 ### Details:
-Write unit tests for the DismissalService, testing all timer scenarios. Create integration tests for the interaction between the service and UI components. Test edge cases like app backgrounding, device restarts, and timer interruptions.
+For stateless JWT, this may involve instructing the client to delete the token or maintaining a token blacklist if necessary.
 
-## 8. Perform end-to-end testing and bug fixing [done]
-### Dependencies: 3.7
-### Description: Conduct thorough end-to-end testing of the entire application with the refactored DismissalService.
+## 7. Handle Errors and Test All Flows [in-progress]
+### Dependencies: None
+### Description: Implement comprehensive error handling for all endpoints and thoroughly test registration, login, logout, and token validation flows.
 ### Details:
-Test on multiple devices and Android versions. Verify all timer-based flows work correctly in real-world scenarios. Fix any bugs discovered during testing. Document any known limitations or edge cases for future reference.
+Ensure clear error messages for invalid credentials, expired tokens, and other authentication failures. Write tests to cover all authentication scenarios.
 

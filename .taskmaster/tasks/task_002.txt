@@ -1,60 +1,43 @@
 # Task ID: 2
-# Title: Clean Up Posture-Related UI Components
+# Title: Design Database Schema for User Management
 # Status: done
 # Dependencies: 1
 # Priority: high
-# Description: Remove all UI components, screens, and widgets related to posture detection functionality
+# Description: Create database migrations and models for user accounts and sleep session data storage
 # Details:
-1. Remove posture detection settings screens/widgets
-2. Remove posture-related options from dismissal UI
-3. Update navigation routes to remove posture screens
-4. Clean up any posture-related state management (Provider/Riverpod)
-5. Remove posture icons and assets from assets folder
-6. Update main app navigation to remove posture detection entry points
+Generate User model with fields: email (string, unique, indexed), password_digest (string), created_at, updated_at. Generate SleepSession model with fields: user_id (foreign key), start_time (datetime), end_time (datetime), dismissal_count (integer), total_dismissal_duration (integer), created_at, updated_at. Add database indexes for performance: user_id on sleep_sessions, email on users. Use `rails generate model User email:string:uniq password_digest:string` and `rails generate model SleepSession user:references start_time:datetime end_time:datetime dismissal_count:integer total_dismissal_duration:integer`. Add validations in models: email presence/uniqueness/format, password length, sleep session associations.
 
 # Test Strategy:
-Manual UI testing to ensure no broken navigation or missing screens. Test all user flows to verify posture detection options are completely removed. Verify app builds and runs without UI errors.
+Run migrations successfully, verify database schema with `rails db:schema:dump`, test model validations in Rails console, ensure foreign key constraints work properly.
 
 # Subtasks:
-## 1. Inventory all posture-related UI screens [done]
+## 1. Design the User Model [done]
 ### Dependencies: None
-### Description: Identify and document all UI screens that implement sovereign, transient, and daemonic posture patterns
+### Description: Define the User model with appropriate attributes (e.g., email, name, password_digest) and ensure it follows Rails conventions for authentication and associations.
 ### Details:
-Create a comprehensive inventory of all screens that use posture-related design patterns. For each screen, document its current posture type (sovereign, transient, daemonic), its purpose, and its relationship to other screens. Include screenshots and wireframes for reference.
+Determine required fields, data types, and add necessary indexes (e.g., unique index on email). Consider validations for presence and uniqueness.
 
-## 2. Catalog posture-specific widgets and components [done]
+## 2. Design the SleepSession Model [done]
 ### Dependencies: 2.1
-### Description: Identify all UI widgets and components that implement posture-specific behaviors
+### Description: Create the SleepSession model with relevant attributes (e.g., user_id, start_time, end_time, quality_rating) and establish associations to the User model.
 ### Details:
-Document all widgets, components, and UI elements that implement posture-specific behaviors. For each component, note its current implementation, behavioral characteristics, and which screens use it. Tag components for removal or refactoring based on their usage patterns.
+Define foreign key relationship to User, choose appropriate data types, and consider additional fields for tracking sleep metrics.
 
-## 3. Map navigation routes and transitions [done]
-### Dependencies: 2.1
-### Description: Document all navigation paths between posture-related screens and transition behaviors
-### Details:
-Create a navigation map showing all routes between posture-related screens. Document transition animations, modal behaviors, and state preservation during navigation. Identify navigation patterns that will need updating after posture-related changes.
-
-## 4. Inventory posture-related assets [done]
+## 3. Add Indexes and Constraints [done]
 ### Dependencies: 2.1, 2.2
-### Description: Catalog all visual and code assets related to posture implementations
+### Description: Implement database-level indexes and constraints to ensure data integrity and optimize query performance.
 ### Details:
-Identify all assets related to posture implementations including images, icons, animations, CSS files, and JavaScript modules. Document dependencies between assets and determine which can be safely removed versus which need refactoring.
+Add unique and foreign key constraints, NOT NULL constraints, and indexes on frequently queried columns (e.g., user_id on SleepSession, email on User).
 
-## 5. Develop refactoring and removal plan [done]
+## 4. Implement Model Validations [done]
+### Dependencies: 2.1, 2.2
+### Description: Add ActiveRecord validations to the User and SleepSession models to enforce business rules and prevent invalid data from being saved.
+### Details:
+Include presence, uniqueness, and format validations as appropriate for each model's attributes.
+
+## 5. Test Migrations and Associations [done]
 ### Dependencies: 2.1, 2.2, 2.3, 2.4
-### Description: Create detailed steps for removing or refactoring each posture-related element
+### Description: Write and execute tests to verify that migrations run successfully, models are associated correctly, and validations work as intended.
 ### Details:
-Develop a comprehensive plan detailing the removal or refactoring steps for each identified element. Include state management updates, navigation flow preservation strategies, and UI consistency considerations. Prioritize changes based on dependency relationships and impact.
-
-## 6. Create UI testing strategy [done]
-### Dependencies: 2.5
-### Description: Develop manual and automated testing procedures for validating UI integrity
-### Details:
-Design a testing strategy that includes both manual test cases and automated UI tests. Create test scenarios that verify navigation flows remain intact, UI components render correctly, and state management functions properly after changes. Include visual regression testing to catch unexpected UI changes.
-
-## 7. Implement changes and execute testing [done]
-### Dependencies: 2.5, 2.6
-### Description: Execute the refactoring plan and perform comprehensive testing
-### Details:
-Implement the removal and refactoring steps according to the plan. Update state management code, navigation routes, and UI flows as needed. Execute the testing strategy to verify all changes maintain UI integrity. Document any issues encountered and their resolutions.
+Create test cases for model associations, validation errors, and ensure database schema matches expectations after migrations.
 

@@ -1,54 +1,49 @@
 # Task ID: 6
-# Title: Optimize Dependencies and Build Configuration
-# Status: done
-# Dependencies: 1, 5
-# Priority: medium
-# Description: Remove unused dependencies, optimize pubspec.yaml, and clean up build configuration for distribution
+# Title: Implement Authentication UI Components
+# Status: pending
+# Dependencies: 5
+# Priority: high
+# Description: Create login, registration, and authentication state management components for the React dashboard
 # Details:
-1. Audit pubspec.yaml dependencies and remove unused packages
-2. Update dependency versions to latest stable releases (flutter_local_notifications, battery_plus, etc.)
-3. Optimize Android build.gradle for release builds
-4. Configure ProGuard/R8 for code shrinking and obfuscation
-5. Remove unused assets and reduce APK size
-6. Update minimum SDK versions if needed for latest dependencies
+Create AuthContext using React Context API for global auth state management. Build LoginForm component with email/password fields, validation, and error handling. Create RegisterForm component with email, password, confirm password fields. Implement ProtectedRoute component for authenticated routes. Add AuthLayout component for login/register pages with responsive design. Use React Hook Form for form validation and submission. Implement token storage in localStorage with automatic cleanup. Add loading states and error messages with proper UX feedback. Style components with Tailwind CSS and Headless UI for accessibility.
 
 # Test Strategy:
-Build release APK and verify size optimization. Test app functionality with optimized build. Run dependency audit tools to ensure no security vulnerabilities. Test on minimum supported Android version.
+Test form validation, successful login/registration flows, error handling for invalid credentials, protected route access, token persistence across browser refresh, responsive design on mobile/desktop.
 
 # Subtasks:
-## 1. Audit current dependencies [done]
+## 1. Create AuthContext and Provider [pending]
 ### Dependencies: None
-### Description: Identify outdated and unused dependencies in the Flutter project
+### Description: Set up an AuthContext using React's createContext and implement an AuthProvider component to manage authentication state and provide it to the app.
 ### Details:
-Run 'flutter pub outdated' to identify packages that can be upgraded. Review the pubspec.yaml file to identify dependencies that are no longer needed. Document all dependencies that need updating with their current and target versions.
+Create a new file for AuthContext. Use useState to manage user and authentication status. Export a custom hook for consuming the context.
 
-## 2. Update Flutter dependencies [done]
+## 2. Build LoginForm Component [pending]
 ### Dependencies: 6.1
-### Description: Update all Flutter packages to their latest compatible versions
+### Description: Develop a LoginForm component that collects user credentials, validates input, and triggers authentication logic via AuthContext.
 ### Details:
-Run 'flutter update-packages --force-upgrade' to update all dependencies. For dependencies that need to be pinned to specific versions, modify the kManuallyPinnedDependencies file with appropriate issue links. Update the pubspec.yaml file with any specific version constraints needed.
+Implement form state, input validation, and error handling. Use the AuthContext to call the login action and handle API integration.
 
-## 3. Update Android Gradle configuration [done]
+## 3. Build RegisterForm Component [pending]
 ### Dependencies: 6.1
-### Description: Update Android-specific build configurations for compatibility
+### Description: Create a RegisterForm component for new user registration, including form validation and error handling.
 ### Details:
-Review and update the android/build.gradle and android/app/build.gradle files. Update the Gradle version in android/gradle/wrapper/gradle-wrapper.properties. Ensure compileSdkVersion, minSdkVersion, and targetSdkVersion are set to appropriate values in the app-level build.gradle file.
+Design the registration form, validate inputs, and connect to the registration logic in AuthContext or via API.
 
-## 4. Optimize Android build configuration for release [done]
-### Dependencies: 6.3
-### Description: Configure the Android build for production release
+## 4. Implement ProtectedRoute Component [pending]
+### Dependencies: 6.1
+### Description: Develop a ProtectedRoute component that restricts access to authenticated users using AuthContext state.
 ### Details:
-Configure signing keys in android/app/build.gradle. Set up ProGuard rules in android/app/proguard-rules.pro. Enable R8 code shrinking and configure split APKs if needed. Update the AndroidManifest.xml with appropriate permissions and features for release.
+Check authentication status from AuthContext and redirect unauthenticated users to the login page.
 
-## 5. Test dependency updates on multiple devices [done]
-### Dependencies: 6.2, 6.3, 6.4
-### Description: Verify that the updated dependencies work correctly across devices
+## 5. Add AuthLayout Component [pending]
+### Dependencies: 6.2, 6.3
+### Description: Create an AuthLayout component to provide a consistent layout for authentication-related pages.
 ### Details:
-Test the app on multiple Android API levels (minimum supported to latest). Verify that all features dependent on updated packages function correctly. Check for any performance regressions or UI inconsistencies introduced by dependency updates.
+Design a layout that wraps LoginForm and RegisterForm, handling navigation and shared UI elements.
 
-## 6. Create release build and validate [done]
-### Dependencies: 6.5
-### Description: Generate a release build and perform final validation
+## 6. Handle Token Storage and Style Components [pending]
+### Dependencies: 6.2, 6.3, 6.4, 6.5
+### Description: Implement secure token storage (e.g., localStorage or cookies) and apply consistent styling to all authentication components.
 ### Details:
-Run 'flutter build appbundle' to create a release build. Validate the app bundle using the Play Console's internal testing track. Check the app size and performance metrics. Ensure all dependencies are properly integrated in the release build by testing all app features.
+Store authentication tokens securely after login/registration and ensure all components are styled according to the app's design system.
 

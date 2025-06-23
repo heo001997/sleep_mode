@@ -1,54 +1,55 @@
 # Task ID: 4
-# Title: Remove Posture Detection Test Cases
-# Status: done
-# Dependencies: 1, 2, 3
-# Priority: medium
-# Description: Clean up test suite by removing all posture detection related test cases and updating existing tests
+# Title: Create Sleep Session API Endpoints
+# Status: pending
+# Dependencies: 3
+# Priority: high
+# Description: Develop RESTful API endpoints for sleep session data management and synchronization
 # Details:
-1. Remove posture detection unit tests from test directory
-2. Remove posture-related widget tests
-3. Update integration tests to remove posture detection scenarios
-4. Update sleep window logic tests to remove posture dismissal test cases
-5. Ensure remaining 27+ sleep window test scenarios still pass
-6. Update test mocks to remove posture detector mocks
+Generate SleepSessionsController with CRUD operations: index (GET /api/sleep_sessions), show (GET /api/sleep_sessions/:id), create (POST /api/sleep_sessions), update (PATCH /api/sleep_sessions/:id), destroy (DELETE /api/sleep_sessions/:id). Implement JSON serialization using ActiveModel::Serializers or Jbuilder. Add pagination using `kaminari` gem (25 records per page). Include filtering by date range and sorting by created_at. Add proper error handling for invalid data, unauthorized access, and not found resources. Implement bulk operations for mobile app sync efficiency.
 
 # Test Strategy:
-Run full test suite with 'flutter test' to ensure all tests pass. Verify test coverage remains comprehensive for core sleep blocking functionality. Check that no test files reference removed posture detection components.
+Test all CRUD operations with authenticated requests, verify pagination works, test date filtering and sorting, ensure proper error responses for edge cases, validate JSON response format.
 
 # Subtasks:
-## 1. Identify all test files with posture detection tests [done]
+## 1. Generate Controller and Define Routes [pending]
 ### Dependencies: None
-### Description: Scan the project directory to locate all test files that contain posture detection related test cases
+### Description: Create the controller file and set up RESTful routes for the resource, following best practices for naming and HTTP method usage.
 ### Details:
-Search through test/, test/unit/, test/widget/, and test/integration/ directories for files containing keywords like 'pose', 'posture', 'body_detection', or 'pose_estimation'. Create a comprehensive list with file paths and brief descriptions of what each test file covers.
+Ensure routes use plural nouns and appropriate HTTP verbs (GET, POST, PUT, DELETE).
 
-## 2. Analyze test dependencies and coverage [done]
+## 2. Implement CRUD Actions [pending]
 ### Dependencies: 4.1
-### Description: Determine which tests can be safely removed without affecting overall test coverage
+### Description: Develop Create, Read, Update, and Delete actions within the controller to handle resource management.
 ### Details:
-For each identified test file, analyze dependencies between tests and determine which posture detection tests can be removed without breaking other tests. Create a dependency graph and identify tests that might need modification rather than removal.
+Each action should correspond to its respective HTTP method and route.
 
-## 3. Modify unit tests for pose detection [done]
+## 3. Add Pagination to List Endpoints [pending]
 ### Dependencies: 4.2
-### Description: Update unit test files to remove or modify posture detection specific test cases
+### Description: Integrate pagination logic into list endpoints to efficiently handle large datasets.
 ### Details:
-In each unit test file, identify specific test cases to remove or modify. For each test case, document the exact function name, line numbers, and whether it should be removed entirely or modified. For tests requiring modification, specify the exact changes needed.
+Use query parameters (e.g., page, limit) to control pagination.
 
-## 4. Update widget tests for pose detection UI [done]
-### Dependencies: 4.2
-### Description: Modify widget test files to remove or update UI component tests related to posture detection
+## 4. Implement Filtering and Sorting [pending]
+### Dependencies: 4.3
+### Description: Enable filtering and sorting of resources via query parameters on list endpoints.
 ### Details:
-For each widget test file, identify test cases testing UI components related to posture detection. Document the widget being tested, test function names, and specific modifications needed. For tests that verify UI behavior with pose detection, determine if they should be removed or modified to test alternative functionality.
+Support common filters and allow sorting by specified fields.
 
-## 5. Revise integration tests [done]
-### Dependencies: 4.2
-### Description: Update integration tests that include posture detection functionality
+## 5. Handle Errors and Provide Informative Responses [pending]
+### Dependencies: 4.4
+### Description: Add robust error handling to all endpoints, returning appropriate HTTP status codes and clear error messages.
 ### Details:
-For each integration test file, identify test scenarios that involve posture detection. Document the test names, file paths, and specific sections to modify. For end-to-end tests that depend on posture detection, determine alternative flows to test or whether the test should be removed entirely.
+Use try-catch blocks and standardized error payloads for client usability.
 
-## 6. Verify test suite integrity after modifications [done]
-### Dependencies: 4.3, 4.4, 4.5
-### Description: Run the modified test suite to ensure all remaining tests pass successfully
+## 6. Implement Bulk Operations [pending]
+### Dependencies: 4.5
+### Description: Add endpoints and logic for bulk create, update, or delete operations on resources.
 ### Details:
-After all modifications, run the complete test suite to verify that no tests are broken. Document any failures and fix them. Update test coverage reports to ensure critical functionality remains well-tested. Create a summary report of all changes made to the test suite.
+Ensure bulk operations follow RESTful conventions and handle errors gracefully.
+
+## 7. Test All Endpoints and Features [pending]
+### Dependencies: None
+### Description: Write and execute unit and integration tests for all endpoints, including edge cases for pagination, filtering, sorting, error handling, and bulk operations.
+### Details:
+Ensure comprehensive coverage and validate correct behavior under various scenarios.
 
