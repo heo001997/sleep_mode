@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DashboardPageLayout } from '../components/layout';
+import { ChangePasswordForm, EmailChangeForm, ProfilePictureUpload, ActivityLog, PrivacyControls } from '../components/profile';
 import { authService } from '../services';
 import type { User } from '../types';
 import {
@@ -310,6 +311,46 @@ export default function ProfilePage() {
     switch (activeSection) {
       case 'overview':
         return renderProfileOverview();
+      
+      case 'change-password':
+        return (
+          <ChangePasswordForm
+            onSuccess={() => {
+              // Optional: Show success message or redirect
+              setTimeout(() => setActiveSection('overview'), 2000);
+            }}
+            onCancel={() => setActiveSection('overview')}
+          />
+        );
+      
+      case 'email-settings':
+        return (
+          <EmailChangeForm
+            onSuccess={() => {
+              // Refresh user data and show overview after successful email change
+              setTimeout(() => setActiveSection('overview'), 2000);
+            }}
+            onCancel={() => setActiveSection('overview')}
+          />
+        );
+      
+      case 'profile-picture':
+        return (
+          <ProfilePictureUpload
+            onSuccess={() => {
+              // Refresh user data and show overview after successful picture upload
+              setTimeout(() => setActiveSection('overview'), 2000);
+            }}
+            onCancel={() => setActiveSection('overview')}
+          />
+        );
+      
+      case 'activity-log':
+        return <ActivityLog />;
+      
+      case 'privacy-controls':
+        return <PrivacyControls />;
+      
       default:
         return (
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">

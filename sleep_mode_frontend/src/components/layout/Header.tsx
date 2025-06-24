@@ -13,6 +13,7 @@ import {
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
+import { NetworkStatusBadge } from '../common/NetworkStatusIndicator';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -141,6 +142,13 @@ export const Header: React.FC = () => {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
+            {/* Network Status */}
+            <NetworkStatusBadge 
+              showText={true} 
+              showQueueCount={true} 
+              className="hidden sm:flex"
+            />
+            
             {/* Theme Toggle */}
             <Menu as="div" className="relative">
               <Menu.Button className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors duration-200">

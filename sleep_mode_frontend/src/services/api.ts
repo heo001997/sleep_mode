@@ -1,6 +1,8 @@
 import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from 'axios';
 import { APP_CONFIG, STORAGE_KEYS } from '../config/constants';
 import { storage } from '../utils';
+import { networkService } from './networkService';
+import { retryService } from './retryService';
 
 // Create axios instance with default configuration
 const createApiClient = (): AxiosInstance => {
@@ -27,10 +29,10 @@ const createApiClient = (): AxiosInstance => {
     }
   );
 
-  // Response interceptor for error handling
+  // Response interceptor for error handling and offline support
   client.interceptors.response.use(
     (response) => response,
-    (error) => {
+    async (error) => {
       // Handle 401 Unauthorized - clear auth data and redirect to login
       if (error.response?.status === 401) {
         storage.remove(STORAGE_KEYS.AUTH_TOKEN);
@@ -40,11 +42,37 @@ const createApiClient = (): AxiosInstance => {
         if (window.location.pathname !== '/login') {
           window.location.href = '/login';
         }
+        return Promise.reject(error);
       }
 
-      // Handle network errors
+      // Handle network errors and offline scenarios
       if (!error.response) {
-        error.message = 'Network error. Please check your connection.';
+        const networkStatus = networkService.getNetworkStatus();
+        
+        if (!networkStatus.isOnline) {
+          // Queue request for retry when back online
+          const config = error.config;
+          if (config && ['post', 'put', 'patch', 'delete'].includes(config.method?.toLowerCase())) {
+            const fullUrl = config.baseURL ? `${config.baseURL}${config.url}` : config.url;
+            const headers = { ...config.headers };
+            
+            // Remove axios-specific headers
+            delete headers['Content-Length'];
+            delete headers['Accept-Encoding'];
+            
+            networkService.queueRequest(
+              fullUrl,
+              config.method?.toUpperCase() || 'GET',
+              config.data,
+              headers,
+              { priority: 'medium', maxRetries: 3 }
+            );
+          }
+          
+          error.message = 'You are currently offline. Your request will be processed when connection is restored.';
+        } else {
+          error.message = 'Network error. Please check your connection.';
+        }
       }
 
       return Promise.reject(error);
@@ -69,54 +97,160 @@ export interface ApiResponse<T = any> {
   };
 }
 
-// Generic API methods
+// Generic API methods with retry support
 export const api = {
-  // GET request
+  // GET request with retry
   get: async <T = any>(
     url: string,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig & { useRetry?: boolean }
   ): Promise<ApiResponse<T>> => {
-    const response: AxiosResponse<ApiResponse<T>> = await apiClient.get(url, config);
-    return response.data;
+    const { useRetry = true, ...axiosConfig } = config || {};
+    
+    const makeRequest = async () => {
+      const response: AxiosResponse<ApiResponse<T>> = await apiClient.get(url, axiosConfig);
+      return response.data;
+    };
+
+    if (useRetry) {
+      return await retryService.retryNetworkOperation(makeRequest);
+    } else {
+      return await makeRequest();
+    }
   },
 
-  // POST request
+  // POST request with retry and offline queuing
   post: async <T = any>(
     url: string,
     data?: any,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig & { useRetry?: boolean; priority?: 'low' | 'medium' | 'high' }
   ): Promise<ApiResponse<T>> => {
-    const response: AxiosResponse<ApiResponse<T>> = await apiClient.post(url, data, config);
-    return response.data;
+    const { useRetry = true, priority = 'medium', ...axiosConfig } = config || {};
+    
+    const makeRequest = async () => {
+      // Check if offline and queue request
+      const networkStatus = networkService.getNetworkStatus();
+      if (!networkStatus.isOnline) {
+        const fullUrl = `${APP_CONFIG.API_BASE_URL}${url}`;
+        const headers = { ...axiosConfig.headers };
+        const token = storage.get<string>(STORAGE_KEYS.AUTH_TOKEN);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        
+        networkService.queueRequest(fullUrl, 'POST', data, headers, { priority });
+        throw new Error('Request queued for when connection is restored');
+      }
+      
+      const response: AxiosResponse<ApiResponse<T>> = await apiClient.post(url, data, axiosConfig);
+      return response.data;
+    };
+
+    if (useRetry) {
+      return await retryService.retryNetworkOperation(makeRequest);
+    } else {
+      return await makeRequest();
+    }
   },
 
-  // PUT request
+  // PUT request with retry and offline queuing
   put: async <T = any>(
     url: string,
     data?: any,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig & { useRetry?: boolean; priority?: 'low' | 'medium' | 'high' }
   ): Promise<ApiResponse<T>> => {
-    const response: AxiosResponse<ApiResponse<T>> = await apiClient.put(url, data, config);
-    return response.data;
+    const { useRetry = true, priority = 'medium', ...axiosConfig } = config || {};
+    
+    const makeRequest = async () => {
+      // Check if offline and queue request
+      const networkStatus = networkService.getNetworkStatus();
+      if (!networkStatus.isOnline) {
+        const fullUrl = `${APP_CONFIG.API_BASE_URL}${url}`;
+        const headers = { ...axiosConfig.headers };
+        const token = storage.get<string>(STORAGE_KEYS.AUTH_TOKEN);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        
+        networkService.queueRequest(fullUrl, 'PUT', data, headers, { priority });
+        throw new Error('Request queued for when connection is restored');
+      }
+      
+      const response: AxiosResponse<ApiResponse<T>> = await apiClient.put(url, data, axiosConfig);
+      return response.data;
+    };
+
+    if (useRetry) {
+      return await retryService.retryNetworkOperation(makeRequest);
+    } else {
+      return await makeRequest();
+    }
   },
 
-  // PATCH request
+  // PATCH request with retry and offline queuing
   patch: async <T = any>(
     url: string,
     data?: any,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig & { useRetry?: boolean; priority?: 'low' | 'medium' | 'high' }
   ): Promise<ApiResponse<T>> => {
-    const response: AxiosResponse<ApiResponse<T>> = await apiClient.patch(url, data, config);
-    return response.data;
+    const { useRetry = true, priority = 'medium', ...axiosConfig } = config || {};
+    
+    const makeRequest = async () => {
+      // Check if offline and queue request
+      const networkStatus = networkService.getNetworkStatus();
+      if (!networkStatus.isOnline) {
+        const fullUrl = `${APP_CONFIG.API_BASE_URL}${url}`;
+        const headers = { ...axiosConfig.headers };
+        const token = storage.get<string>(STORAGE_KEYS.AUTH_TOKEN);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        
+        networkService.queueRequest(fullUrl, 'PATCH', data, headers, { priority });
+        throw new Error('Request queued for when connection is restored');
+      }
+      
+      const response: AxiosResponse<ApiResponse<T>> = await apiClient.patch(url, data, axiosConfig);
+      return response.data;
+    };
+
+    if (useRetry) {
+      return await retryService.retryNetworkOperation(makeRequest);
+    } else {
+      return await makeRequest();
+    }
   },
 
-  // DELETE request
+  // DELETE request with retry and offline queuing
   delete: async <T = any>(
     url: string,
-    config?: AxiosRequestConfig
+    config?: AxiosRequestConfig & { useRetry?: boolean; priority?: 'low' | 'medium' | 'high' }
   ): Promise<ApiResponse<T>> => {
-    const response: AxiosResponse<ApiResponse<T>> = await apiClient.delete(url, config);
-    return response.data;
+    const { useRetry = true, priority = 'high', ...axiosConfig } = config || {};
+    
+    const makeRequest = async () => {
+      // Check if offline and queue request
+      const networkStatus = networkService.getNetworkStatus();
+      if (!networkStatus.isOnline) {
+        const fullUrl = `${APP_CONFIG.API_BASE_URL}${url}`;
+        const headers = { ...axiosConfig.headers };
+        const token = storage.get<string>(STORAGE_KEYS.AUTH_TOKEN);
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        
+        networkService.queueRequest(fullUrl, 'DELETE', undefined, headers, { priority });
+        throw new Error('Request queued for when connection is restored');
+      }
+      
+      const response: AxiosResponse<ApiResponse<T>> = await apiClient.delete(url, axiosConfig);
+      return response.data;
+    };
+
+    if (useRetry) {
+      return await retryService.retryNetworkOperation(makeRequest);
+    } else {
+      return await makeRequest();
+    }
   },
 };
 
@@ -202,6 +336,38 @@ export const isClientError = (error: any): boolean => {
 // Check if error is a server error (5xx)
 export const isServerError = (error: any): boolean => {
   return error.response && error.response.status >= 500;
+};
+
+// Network and offline utilities
+export const getNetworkStatus = () => networkService.getNetworkStatus();
+export const isOffline = () => !networkService.getNetworkStatus().isOnline;
+export const onNetworkStatusChange = (callback: (status: any) => void) => 
+  networkService.onStatusChange(callback);
+
+// Queue management utilities  
+export const getQueueStatus = () => networkService.getQueueStatus();
+export const processOfflineQueue = () => networkService.processQueue();
+export const clearOfflineQueue = () => networkService.clearQueue();
+
+// Retry utilities
+export const getActiveRetryCount = () => retryService.getActiveOperationsCount();
+export const getAllRetryOperations = () => retryService.getAllOperations();
+
+// Enhanced error handler with offline context
+export const handleApiErrorWithContext = (error: any): string => {
+  // Check if this is an offline-related error
+  if (error.message?.includes('queued for when connection is restored')) {
+    return 'You are offline. Your request has been saved and will be processed when connection is restored.';
+  }
+
+  // Check current network status for better error messages
+  const networkStatus = networkService.getNetworkStatus();
+  if (!networkStatus.isOnline && isNetworkError(error)) {
+    return 'You are currently offline. Please check your internet connection.';
+  }
+
+  // Use existing error handler for other cases
+  return handleApiError(error);
 };
 
 export default api; 

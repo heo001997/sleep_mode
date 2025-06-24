@@ -1,0 +1,480 @@
+name: 🚀 Sleep Mode CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'Environment to deploy to'
+        required: false
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '18.19'
+  RUBY_VERSION: '3.1'
+  FLUTTER_VERSION: '3.22.0'
+
+jobs:
+  # 📊 Quality Checks and Linting
+  quality-checks:
+    name: 🔍 Code Quality & Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: 🏷️ Generate build metadata
+        id: meta
+        run: |
+          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+          echo "sha=${GITHUB_SHA::8}" >> $GITHUB_OUTPUT
+          echo "ref=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+          echo "build_number=${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      # Frontend Quality Checks
+      - name: 📦 Setup Node.js for Frontend
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sleep_mode_frontend/package-lock.json
+
+      - name: 📥 Install Frontend Dependencies
+        working-directory: sleep_mode_frontend
+        run: npm ci
+
+      - name: 🔍 Frontend ESLint
+        working-directory: sleep_mode_frontend
+        run: npm run lint
+
+      - name: 🔍 Frontend TypeScript Check
+        working-directory: sleep_mode_frontend
+        run: npm run type-check
+
+      # Backend Quality Checks
+      - name: 💎 Setup Ruby for Backend
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: sleep_mode_rails
+
+      - name: 🔍 Backend RuboCop
+        working-directory: sleep_mode_rails
+        run: bundle exec rubocop --format github
+
+      # Flutter Quality Checks
+      - name: 📱 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: 📥 Flutter Dependencies
+        working-directory: sleep_mode_flutter
+        run: flutter pub get
+
+      - name: 🔍 Flutter Analyze
+        working-directory: sleep_mode_flutter
+        run: flutter analyze
+
+      - name: 🔍 Flutter Format Check
+        working-directory: sleep_mode_flutter
+        run: flutter format --set-exit-if-changed .
+
+  # 🧪 Backend Tests (Rails API)
+  backend-tests:
+    name: 🧪 Backend Tests (Rails)
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sleep_mode_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/sleep_mode_test
+      RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 💎 Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: sleep_mode_rails
+
+      - name: 🗄️ Setup Database
+        working-directory: sleep_mode_rails
+        run: |
+          bundle exec rails db:create
+          bundle exec rails db:schema:load
+
+      - name: 🧪 Run Backend Tests with Coverage
+        working-directory: sleep_mode_rails
+        run: |
+          bundle exec rspec \
+            --format progress \
+            --format RspecJunitFormatter \
+            --out tmp/rspec.xml \
+            --format json \
+            --out tmp/rspec.json
+
+      - name: 📊 Upload Backend Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./sleep_mode_rails/coverage/lcov.info
+          flags: backend
+          name: backend-coverage
+
+      - name: 📄 Upload Backend Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            sleep_mode_rails/tmp/rspec.xml
+            sleep_mode_rails/tmp/rspec.json
+            sleep_mode_rails/coverage/
+
+  # ⚛️ Frontend Tests (React)
+  frontend-tests:
+    name: ⚛️ Frontend Tests (React)
+    runs-on: ubuntu-latest
+    needs: quality-checks
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sleep_mode_frontend/package-lock.json
+
+      - name: 📥 Install Dependencies
+        working-directory: sleep_mode_frontend
+        run: npm ci
+
+      - name: 🧪 Run Unit Tests with Coverage
+        working-directory: sleep_mode_frontend
+        run: npm run ci:coverage
+
+      - name: 📊 Generate Coverage Badges
+        working-directory: sleep_mode_frontend
+        run: npm run coverage:badges
+
+      - name: 📊 Upload Frontend Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./sleep_mode_frontend/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+
+      - name: 📄 Upload Frontend Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-results
+          path: |
+            sleep_mode_frontend/test-results/
+            sleep_mode_frontend/coverage/
+
+  # 🎭 E2E Tests (Playwright)
+  e2e-tests:
+    name: 🎭 E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sleep_mode_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/sleep_mode_test
+      RAILS_ENV: test
+      NODE_ENV: test
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # Setup Backend for E2E
+      - name: 💎 Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: sleep_mode_rails
+
+      - name: 🗄️ Setup Test Database
+        working-directory: sleep_mode_rails
+        run: |
+          bundle exec rails db:create
+          bundle exec rails db:schema:load
+          bundle exec rails db:seed
+
+      # Setup Frontend for E2E
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sleep_mode_frontend/package-lock.json
+
+      - name: 📥 Install Frontend Dependencies
+        working-directory: sleep_mode_frontend
+        run: npm ci
+
+      - name: 🎭 Install Playwright Browsers
+        working-directory: sleep_mode_frontend
+        run: npx playwright install --with-deps
+
+      - name: 🚀 Start Backend Server
+        working-directory: sleep_mode_rails
+        run: |
+          bundle exec rails server -p 3000 &
+          sleep 10
+          curl -f http://localhost:3000/health || exit 1
+
+      - name: 🚀 Build and Start Frontend
+        working-directory: sleep_mode_frontend
+        run: |
+          npm run build
+          npm run preview &
+          sleep 10
+          curl -f http://localhost:4173 || exit 1
+
+      - name: 🎭 Run E2E Tests
+        working-directory: sleep_mode_frontend
+        run: npm run ci:e2e
+
+      - name: 📄 Upload E2E Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-results
+          path: |
+            sleep_mode_frontend/test-results/
+            sleep_mode_frontend/playwright-report/
+
+  # 📱 Flutter Tests
+  flutter-tests:
+    name: 📱 Flutter Tests (Mobile)
+    runs-on: ubuntu-latest
+    needs: quality-checks
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📱 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: 📥 Install Dependencies
+        working-directory: sleep_mode_flutter
+        run: flutter pub get
+
+      - name: 🧪 Run Flutter Tests
+        working-directory: sleep_mode_flutter
+        run: flutter test --coverage --reporter json > test-results.json
+
+      - name: 📊 Upload Flutter Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./sleep_mode_flutter/coverage/lcov.info
+          flags: flutter
+          name: flutter-coverage
+
+      - name: 📄 Upload Flutter Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: flutter-test-results
+          path: |
+            sleep_mode_flutter/test-results.json
+            sleep_mode_flutter/coverage/
+
+  # 🏗️ Build Verification
+  build-verification:
+    name: 🏗️ Build Verification
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, flutter-tests]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+
+    strategy:
+      matrix:
+        platform: [web, android, ios]
+        include:
+          - platform: web
+            build_command: "cd sleep_mode_frontend && npm run build"
+          - platform: android
+            build_command: "cd sleep_mode_flutter && flutter build apk --debug"
+          - platform: ios
+            build_command: "cd sleep_mode_flutter && flutter build ios --debug --no-codesign"
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js (Web)
+        if: matrix.platform == 'web'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sleep_mode_frontend/package-lock.json
+
+      - name: 📱 Setup Flutter (Mobile)
+        if: matrix.platform != 'web'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: 📥 Install Dependencies
+        run: |
+          if [ "${{ matrix.platform }}" = "web" ]; then
+            cd sleep_mode_frontend && npm ci
+          else
+            cd sleep_mode_flutter && flutter pub get
+          fi
+
+      - name: 🏗️ Build ${{ matrix.platform }}
+        run: ${{ matrix.build_command }}
+
+      - name: 📄 Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.platform }}
+          path: |
+            sleep_mode_frontend/dist/
+            sleep_mode_flutter/build/
+
+  # 🚀 Deployment
+  deploy:
+    name: 🚀 Deploy to ${{ github.event.inputs.deploy_environment || 'staging' }}
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, build-verification]
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch')
+    
+    environment: 
+      name: ${{ github.event.inputs.deploy_environment || 'staging' }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-*
+          path: ./builds
+          merge-multiple: true
+
+      - name: 🚀 Deploy Application
+        id: deploy
+        run: |
+          echo "Deploying to ${{ github.event.inputs.deploy_environment || 'staging' }}"
+          echo "url=https://sleepmode-${{ github.event.inputs.deploy_environment || 'staging' }}.example.com" >> $GITHUB_OUTPUT
+          # Add actual deployment steps here
+
+  # 📊 Test Results Summary
+  test-summary:
+    name: 📊 Test Results Summary
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests, flutter-tests, e2e-tests]
+    if: always()
+
+    steps:
+      - name: 📥 Download All Test Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-test-results"
+          path: ./test-results
+          merge-multiple: true
+
+      - name: 📊 Generate Test Summary
+        run: |
+          echo "# 🧪 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Status | Coverage |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|--------|----------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Backend Results
+          if [ "${{ needs.backend-tests.result }}" = "success" ]; then
+            echo "| 🧪 Backend (Rails) | ✅ Passed | 📊 View Coverage |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🧪 Backend (Rails) | ❌ Failed | 📊 View Coverage |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Frontend Results
+          if [ "${{ needs.frontend-tests.result }}" = "success" ]; then
+            echo "| ⚛️ Frontend (React) | ✅ Passed | 📊 View Coverage |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| ⚛️ Frontend (React) | ❌ Failed | 📊 View Coverage |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Flutter Results
+          if [ "${{ needs.flutter-tests.result }}" = "success" ]; then
+            echo "| 📱 Flutter (Mobile) | ✅ Passed | 📊 View Coverage |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 📱 Flutter (Mobile) | ❌ Failed | 📊 View Coverage |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # E2E Results
+          if [ "${{ needs.e2e-tests.result }}" = "success" ]; then
+            echo "| 🎭 E2E (Playwright) | ✅ Passed | 📄 View Report |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🎭 E2E (Playwright) | ❌ Failed | 📄 View Report |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Coverage Reports**: Available in job artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "🎭 **E2E Report**: Available in Playwright artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "🏗️ **Build Status**: ${{ needs.build-verification.result }}" >> $GITHUB_STEP_SUMMARY 

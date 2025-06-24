@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 import type { LoginCredentials } from '../../types';
-import { validateEmail, validatePassword } from '../../utils';
+import { isValidEmail, isValidPassword } from '../../utils';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -39,7 +39,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     // Email validation
     if (!credentials.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!validateEmail(credentials.email)) {
+    } else if (!isValidEmail(credentials.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
@@ -77,7 +77,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     if (field === 'email') {
       if (!credentials.email.trim()) {
         newErrors.email = 'Email is required';
-      } else if (!validateEmail(credentials.email)) {
+      } else if (!isValidEmail(credentials.email)) {
         newErrors.email = 'Please enter a valid email address';
       } else {
         delete newErrors.email;
@@ -189,9 +189,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               disabled={isLoading}
               autoComplete="email"
               required
+              aria-invalid={!!(errors.email && touched.email)}
+              aria-describedby={errors.email && touched.email ? 'email-error' : undefined}
             />
             {errors.email && touched.email && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <p id="email-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
                 {errors.email}
               </p>
             )}
@@ -216,6 +218,8 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                 disabled={isLoading}
                 autoComplete="current-password"
                 required
+                aria-invalid={!!(errors.password && touched.password)}
+                aria-describedby={errors.password && touched.password ? 'password-error' : undefined}
               />
               <button
                 type="button"
@@ -231,7 +235,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               </button>
             </div>
             {errors.password && touched.password && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              <p id="password-error" className="mt-1 text-sm text-red-600 dark:text-red-400">
                 {errors.password}
               </p>
             )}

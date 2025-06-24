@@ -1,0 +1,477 @@
+name: 🚀 Production Deployment
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy'
+        required: false
+        type: string
+      skip_tests:
+        description: 'Skip tests (use with caution)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  NODE_VERSION: '18.19'
+  RUBY_VERSION: '3.1'
+  FLUTTER_VERSION: '3.22.0'
+
+jobs:
+  # 🔍 Pre-deployment Validation
+  pre-deployment:
+    name: 🔍 Pre-deployment Validation
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      environment: ${{ steps.env.outputs.environment }}
+      skip_tests: ${{ steps.validation.outputs.skip_tests }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Determine Version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="latest"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "📦 Deploying version: ${VERSION}"
+
+      - name: 🌍 Determine Environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" = "release" ]; then
+            ENVIRONMENT="production"
+          else
+            ENVIRONMENT="${{ github.event.inputs.environment || 'staging' }}"
+          fi
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+          echo "🌍 Deploying to: ${ENVIRONMENT}"
+
+      - name: ✅ Validate Deployment
+        id: validation
+        run: |
+          # Check if we should skip tests
+          SKIP_TESTS="${{ github.event.inputs.skip_tests || 'false' }}"
+          
+          if [ "${SKIP_TESTS}" = "true" ] && [ "${{ steps.env.outputs.environment }}" = "production" ]; then
+            echo "❌ Cannot skip tests for production deployment!"
+            exit 1
+          fi
+          
+          echo "skip_tests=${SKIP_TESTS}" >> $GITHUB_OUTPUT
+          echo "✅ Deployment validation passed"
+
+  # 🧪 Run Tests (Conditional)
+  run-tests:
+    name: 🧪 Run Tests
+    uses: ./.github/workflows/ci.yml
+    needs: pre-deployment
+    if: needs.pre-deployment.outputs.skip_tests != 'true'
+    secrets: inherit
+
+  # 🏗️ Build Production Artifacts
+  build-production:
+    name: 🏗️ Build Production Artifacts
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, run-tests]
+    if: always() && (needs.run-tests.result == 'success' || needs.pre-deployment.outputs.skip_tests == 'true')
+
+    strategy:
+      matrix:
+        platform: [web, android, ios]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏷️ Setup Build Environment
+        run: |
+          echo "VERSION=${{ needs.pre-deployment.outputs.version }}" >> $GITHUB_ENV
+          echo "ENVIRONMENT=${{ needs.pre-deployment.outputs.environment }}" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=${{ github.run_number }}" >> $GITHUB_ENV
+
+      # Web Build (React Frontend)
+      - name: 📦 Setup Node.js (Web)
+        if: matrix.platform == 'web'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sleep_mode_frontend/package-lock.json
+
+      - name: 🏗️ Build Web Application
+        if: matrix.platform == 'web'
+        working-directory: sleep_mode_frontend
+        env:
+          VITE_APP_VERSION: ${{ env.VERSION }}
+          VITE_BUILD_NUMBER: ${{ env.BUILD_NUMBER }}
+          VITE_ENVIRONMENT: ${{ env.ENVIRONMENT }}
+        run: |
+          npm ci
+          npm run build:prod
+          
+          # Create build metadata
+          echo "{
+            \"version\": \"${{ env.VERSION }}\",
+            \"buildNumber\": \"${{ env.BUILD_NUMBER }}\",
+            \"environment\": \"${{ env.ENVIRONMENT }}\",
+            \"buildTime\": \"$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)\",
+            \"commit\": \"${{ github.sha }}\",
+            \"branch\": \"${{ github.ref_name }}\"
+          }" > dist/build-info.json
+
+      # Android Build (Flutter)
+      - name: 📱 Setup Flutter (Android)
+        if: matrix.platform == 'android'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: ☕ Setup Java (Android)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: 🔐 Setup Android Signing
+        if: matrix.platform == 'android'
+        working-directory: sleep_mode_flutter
+        run: |
+          # Create keystore from secrets
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/app/release-keystore.jks
+          
+          # Create key properties
+          echo "storePassword=${{ secrets.ANDROID_STORE_PASSWORD }}" > android/key.properties
+          echo "keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}" >> android/key.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> android/key.properties
+          echo "storeFile=release-keystore.jks" >> android/key.properties
+
+      - name: 🏗️ Build Android APK
+        if: matrix.platform == 'android'
+        working-directory: sleep_mode_flutter
+        run: |
+          flutter pub get
+          flutter build apk --release \
+            --build-name=${{ env.VERSION }} \
+            --build-number=${{ env.BUILD_NUMBER }}
+
+      - name: 🏗️ Build Android AAB
+        if: matrix.platform == 'android'
+        working-directory: sleep_mode_flutter
+        run: |
+          flutter build appbundle --release \
+            --build-name=${{ env.VERSION }} \
+            --build-number=${{ env.BUILD_NUMBER }}
+
+      # iOS Build (Flutter)
+      - name: 📱 Setup Flutter (iOS)
+        if: matrix.platform == 'ios'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: 🍎 Setup Xcode (iOS)
+        if: matrix.platform == 'ios'
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: 'latest-stable'
+
+      - name: 🔐 Setup iOS Certificates
+        if: matrix.platform == 'ios'
+        env:
+          P12_CERTIFICATE: ${{ secrets.IOS_P12_CERTIFICATE }}
+          P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          PROVISIONING_PROFILE: ${{ secrets.IOS_PROVISIONING_PROFILE }}
+        run: |
+          # Create temporary keychain
+          security create-keychain -p tempPassword temp.keychain
+          security default-keychain -s temp.keychain
+          security unlock-keychain -p tempPassword temp.keychain
+          
+          # Import certificate
+          echo "$P12_CERTIFICATE" | base64 -d > certificate.p12
+          security import certificate.p12 -k temp.keychain -P "$P12_PASSWORD" -T /usr/bin/codesign
+          
+          # Install provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "$PROVISIONING_PROFILE" | base64 -d > ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      - name: 🏗️ Build iOS App
+        if: matrix.platform == 'ios'
+        working-directory: sleep_mode_flutter
+        run: |
+          flutter pub get
+          flutter build ios --release \
+            --build-name=${{ env.VERSION }} \
+            --build-number=${{ env.BUILD_NUMBER }}
+
+      - name: 📦 Archive iOS App
+        if: matrix.platform == 'ios'
+        working-directory: sleep_mode_flutter
+        run: |
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath build/Runner.xcarchive \
+            archive
+
+      - name: 📄 Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.platform }}-${{ env.VERSION }}
+          path: |
+            sleep_mode_frontend/dist/
+            sleep_mode_flutter/build/app/outputs/
+            sleep_mode_flutter/build/Runner.xcarchive/
+          retention-days: 30
+
+  # 🚀 Deploy to Infrastructure
+  deploy-infrastructure:
+    name: 🚀 Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, build-production]
+    environment: 
+      name: ${{ needs.pre-deployment.outputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-*-${{ needs.pre-deployment.outputs.version }}
+          path: ./builds
+          merge-multiple: true
+
+      # Backend Deployment (Rails API)
+      - name: 🚀 Deploy Backend API
+        id: deploy-backend
+        run: |
+          echo "🚀 Deploying backend to ${{ needs.pre-deployment.outputs.environment }}"
+          
+          # Example deployment commands (replace with actual deployment)
+          if [ "${{ needs.pre-deployment.outputs.environment }}" = "production" ]; then
+            BACKEND_URL="https://api.sleepmode.app"
+          else
+            BACKEND_URL="https://api-staging.sleepmode.app"
+          fi
+          
+          echo "backend_url=${BACKEND_URL}" >> $GITHUB_OUTPUT
+          echo "✅ Backend deployed to: ${BACKEND_URL}"
+
+      # Frontend Deployment (React Web App)
+      - name: 🌐 Deploy Frontend Web App
+        id: deploy-frontend
+        run: |
+          echo "🌐 Deploying frontend to ${{ needs.pre-deployment.outputs.environment }}"
+          
+          # Example deployment commands (replace with actual deployment)
+          if [ "${{ needs.pre-deployment.outputs.environment }}" = "production" ]; then
+            FRONTEND_URL="https://sleepmode.app"
+          else
+            FRONTEND_URL="https://staging.sleepmode.app"
+          fi
+          
+          echo "frontend_url=${FRONTEND_URL}" >> $GITHUB_OUTPUT
+          echo "✅ Frontend deployed to: ${FRONTEND_URL}"
+
+      - name: 📊 Set Deployment URLs
+        id: deploy
+        run: |
+          echo "url=${{ steps.deploy-frontend.outputs.frontend_url }}" >> $GITHUB_OUTPUT
+
+  # 📱 Deploy Mobile Apps
+  deploy-mobile:
+    name: 📱 Deploy Mobile Apps
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, build-production]
+    if: needs.pre-deployment.outputs.environment == 'production'
+
+    strategy:
+      matrix:
+        platform: [android, ios]
+
+    steps:
+      - name: 📥 Download Mobile Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-${{ matrix.platform }}-${{ needs.pre-deployment.outputs.version }}
+          path: ./mobile-builds
+
+      # Android Deployment
+      - name: 📱 Deploy to Google Play Store
+        if: matrix.platform == 'android'
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT }}
+          packageName: com.sleepmode.app
+          releaseFiles: mobile-builds/app-release.aab
+          track: production
+          status: completed
+
+      # iOS Deployment
+      - name: 🍎 Deploy to App Store Connect
+        if: matrix.platform == 'ios'
+        run: |
+          # Install App Store Connect API tools
+          brew install altool
+          
+          # Upload to App Store Connect
+          xcrun altool --upload-app \
+            --type ios \
+            --file mobile-builds/Runner.xcarchive \
+            --username "${{ secrets.APPLE_ID_USERNAME }}" \
+            --password "${{ secrets.APPLE_ID_APP_PASSWORD }}"
+
+  # ✅ Post-deployment Verification
+  post-deployment:
+    name: ✅ Post-deployment Verification
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, deploy-infrastructure]
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔍 Health Check - Backend API
+        run: |
+          BACKEND_URL="${{ needs.deploy-infrastructure.outputs.backend_url || 'https://api-staging.sleepmode.app' }}"
+          
+          echo "🔍 Checking backend health: ${BACKEND_URL}/health"
+          for i in {1..5}; do
+            if curl -f "${BACKEND_URL}/health"; then
+              echo "✅ Backend health check passed"
+              break
+            else
+              echo "⚠️ Backend health check failed (attempt $i/5)"
+              sleep 30
+            fi
+            
+            if [ $i -eq 5 ]; then
+              echo "❌ Backend health check failed after 5 attempts"
+              exit 1
+            fi
+          done
+
+      - name: 🔍 Health Check - Frontend Web App
+        run: |
+          FRONTEND_URL="${{ needs.deploy-infrastructure.outputs.frontend_url || 'https://staging.sleepmode.app' }}"
+          
+          echo "🔍 Checking frontend health: ${FRONTEND_URL}"
+          for i in {1..5}; do
+            if curl -f "${FRONTEND_URL}"; then
+              echo "✅ Frontend health check passed"
+              break
+            else
+              echo "⚠️ Frontend health check failed (attempt $i/5)"
+              sleep 30
+            fi
+            
+            if [ $i -eq 5 ]; then
+              echo "❌ Frontend health check failed after 5 attempts"
+              exit 1
+            fi
+          done
+
+      - name: 🧪 Run Smoke Tests
+        working-directory: sleep_mode_frontend
+        run: |
+          # Setup Node.js for smoke tests
+          npm ci
+          
+          # Run basic smoke tests against deployed environment
+          PLAYWRIGHT_BASE_URL="${{ needs.deploy-infrastructure.outputs.frontend_url || 'https://staging.sleepmode.app' }}" \
+          npm run test:e2e -- --grep "smoke"
+
+  # 📊 Deployment Summary
+  deployment-summary:
+    name: 📊 Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [pre-deployment, deploy-infrastructure, deploy-mobile, post-deployment]
+    if: always()
+
+    steps:
+      - name: 📊 Generate Deployment Summary
+        run: |
+          echo "# 🚀 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📋 Deployment Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ needs.pre-deployment.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: ${{ needs.pre-deployment.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Number**: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed At**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Deployed By**: ${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## 🌐 Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|-----|" >> $GITHUB_STEP_SUMMARY
+          
+          # Infrastructure Status
+          if [ "${{ needs.deploy-infrastructure.result }}" = "success" ]; then
+            echo "| 🌐 Web App | ✅ Deployed | [${{ needs.deploy-infrastructure.outputs.frontend_url }}](${{ needs.deploy-infrastructure.outputs.frontend_url }}) |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🚀 Backend API | ✅ Deployed | [${{ needs.deploy-infrastructure.outputs.backend_url }}](${{ needs.deploy-infrastructure.outputs.backend_url }}) |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🌐 Web App | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🚀 Backend API | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Mobile Status
+          if [ "${{ needs.pre-deployment.outputs.environment }}" = "production" ]; then
+            if [ "${{ needs.deploy-mobile.result }}" = "success" ]; then
+              echo "| 📱 Android App | ✅ Deployed | Google Play Store |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🍎 iOS App | ✅ Deployed | App Store |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "| 📱 Android App | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🍎 iOS App | ❌ Failed | - |" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "| 📱 Mobile Apps | ⏭️ Skipped | Staging deployment |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Verification Status
+          if [ "${{ needs.post-deployment.result }}" = "success" ]; then
+            echo "| ✅ Health Checks | ✅ Passed | All services healthy |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| ✅ Health Checks | ❌ Failed | Check logs for details |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Next Steps" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.post-deployment.result }}" = "success" ]; then
+            echo "- ✅ Deployment completed successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔍 Monitor application performance" >> $GITHUB_STEP_SUMMARY
+            echo "- 📊 Review deployment metrics" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ Deployment issues detected" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔧 Check logs and fix issues" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔄 Consider rollback if necessary" >> $GITHUB_STEP_SUMMARY
+          fi 

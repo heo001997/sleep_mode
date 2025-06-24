@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../../contexts/AuthContext';
 import type { RegisterCredentials } from '../../types';
-import { validateEmail, validatePassword } from '../../utils';
+import { isValidEmail, isValidPassword } from '../../utils';
 
 interface RegisterFormProps {
   onSuccess?: () => void;
@@ -42,18 +42,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     // Email validation
     if (!credentials.email.trim()) {
       newErrors.email = 'Email is required';
-    } else if (!validateEmail(credentials.email)) {
+    } else if (!isValidEmail(credentials.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
     // Password validation
     if (!credentials.password) {
       newErrors.password = 'Password is required';
-    } else {
-      const passwordValidation = validatePassword(credentials.password);
-      if (!passwordValidation.isValid) {
-        newErrors.password = passwordValidation.message;
-      }
+    } else if (!isValidPassword(credentials.password)) {
+      newErrors.password = 'Password must be at least 8 characters';
     }
 
     // Password confirmation validation
@@ -95,7 +92,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     if (field === 'email') {
       if (!credentials.email.trim()) {
         newErrors.email = 'Email is required';
-      } else if (!validateEmail(credentials.email)) {
+      } else if (!isValidEmail(credentials.email)) {
         newErrors.email = 'Please enter a valid email address';
       } else {
         delete newErrors.email;
@@ -105,13 +102,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     if (field === 'password') {
       if (!credentials.password) {
         newErrors.password = 'Password is required';
+      } else if (!isValidPassword(credentials.password)) {
+        newErrors.password = 'Password must be at least 8 characters';
       } else {
-        const passwordValidation = validatePassword(credentials.password);
-        if (!passwordValidation.isValid) {
-          newErrors.password = passwordValidation.message;
-        } else {
-          delete newErrors.password;
-        }
+        delete newErrors.password;
       }
     }
     

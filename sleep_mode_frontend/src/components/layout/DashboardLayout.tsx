@@ -4,6 +4,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
 import { useAuth } from '../../contexts/AuthContext';
+import { NetworkStatusBanner } from '../common/NetworkStatusIndicator';
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -141,6 +142,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
 
         {/* Header */}
         <Header />
+
+        {/* Network Status Banner */}
+        <div className="px-4 sm:px-6 lg:px-8 pt-4">
+          <NetworkStatusBanner className="max-w-7xl mx-auto" />
+        </div>
 
         {/* Page content */}
         <main className="flex-1">

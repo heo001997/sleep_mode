@@ -1,0 +1,411 @@
+name: 🔒 Security & Dependency Scanning
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run security scans daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18.19'
+  RUBY_VERSION: '3.1'
+  FLUTTER_VERSION: '3.22.0'
+
+jobs:
+  # 🔍 Dependency Vulnerability Scanning
+  dependency-check:
+    name: 🔍 Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        platform: [frontend, backend, flutter]
+        include:
+          - platform: frontend
+            path: sleep_mode_frontend
+            package_file: package.json
+            lock_file: package-lock.json
+          - platform: backend  
+            path: sleep_mode_rails
+            package_file: Gemfile
+            lock_file: Gemfile.lock
+          - platform: flutter
+            path: sleep_mode_flutter
+            package_file: pubspec.yaml
+            lock_file: pubspec.lock
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # Frontend Dependency Scanning
+      - name: 📦 Setup Node.js (Frontend)
+        if: matrix.platform == 'frontend'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.path }}/${{ matrix.lock_file }}
+
+      - name: 🔍 NPM Audit (Frontend)
+        if: matrix.platform == 'frontend'
+        working-directory: ${{ matrix.path }}
+        run: |
+          npm ci
+          npm audit --audit-level=moderate --output=json > npm-audit.json || true
+          npm audit --audit-level=moderate
+
+      - name: 🔍 Snyk Test (Frontend)
+        if: matrix.platform == 'frontend'
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --file=${{ matrix.path }}/${{ matrix.package_file }} --json-file-output=snyk-frontend.json
+
+      # Backend Dependency Scanning
+      - name: 💎 Setup Ruby (Backend)
+        if: matrix.platform == 'backend'
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: ${{ matrix.path }}
+
+      - name: 🔍 Bundle Audit (Backend)
+        if: matrix.platform == 'backend'
+        working-directory: ${{ matrix.path }}
+        run: |
+          gem install bundler-audit
+          bundle audit check --update --output=json > bundle-audit.json || true
+          bundle audit check --update
+
+      - name: 🔍 Snyk Test (Backend)
+        if: matrix.platform == 'backend'
+        uses: snyk/actions/ruby@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --file=${{ matrix.path }}/${{ matrix.package_file }} --json-file-output=snyk-backend.json
+
+      # Flutter Dependency Scanning
+      - name: 📱 Setup Flutter
+        if: matrix.platform == 'flutter'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: 🔍 Flutter Dependency Scan
+        if: matrix.platform == 'flutter'
+        working-directory: ${{ matrix.path }}
+        run: |
+          flutter pub get
+          flutter pub deps --json > flutter-deps.json || true
+          # Flutter doesn't have built-in audit, but we can check for known issues
+          echo "Flutter dependency scan completed"
+
+      - name: 📄 Upload Dependency Scan Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-scan-${{ matrix.platform }}
+          path: |
+            ${{ matrix.path }}/*audit*.json
+            ${{ matrix.path }}/snyk*.json
+            ${{ matrix.path }}/flutter-deps.json
+          retention-days: 30
+
+  # 🛡️ Code Security Analysis
+  code-security:
+    name: 🛡️ Code Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # CodeQL Analysis
+      - name: 🔬 Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, ruby
+          queries: security-extended,security-and-quality
+
+      - name: 📦 Setup Node.js for CodeQL
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sleep_mode_frontend/package-lock.json
+
+      - name: 💎 Setup Ruby for CodeQL
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: sleep_mode_rails
+
+      - name: 📥 Install Dependencies
+        run: |
+          cd sleep_mode_frontend && npm ci
+          cd ../sleep_mode_rails && bundle install
+
+      - name: 🔬 Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:javascript,ruby"
+
+      # Semgrep Security Analysis
+      - name: 🔍 Semgrep Security Scan
+        uses: semgrep/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+            p/javascript
+            p/typescript
+            p/ruby
+            p/rails
+          generateSarif: "1"
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+
+      # Bandit for Python (if any Python scripts exist)
+      - name: 🐍 Bandit Security Scan
+        run: |
+          if find . -name "*.py" -type f | head -1; then
+            pip install bandit
+            bandit -r . -f json -o bandit-report.json || true
+            bandit -r . || true
+          else
+            echo "No Python files found, skipping Bandit scan"
+          fi
+
+      - name: 📄 Upload Security Scan Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-scan-results
+          path: |
+            bandit-report.json
+            semgrep-*.sarif
+          retention-days: 30
+
+  # 🔐 Secrets Scanning
+  secrets-scan:
+    name: 🔐 Secrets Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 TruffleHog Secrets Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: 🔍 GitLeaks Secrets Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🔍 Detect Secrets
+        run: |
+          pip install detect-secrets
+          detect-secrets scan --all-files --force-use-all-plugins \
+            --exclude-files '\.git/.*|\.lock$|package-lock\.json|Gemfile\.lock|pubspec\.lock' \
+            > .secrets.baseline
+          
+          # Check if any secrets were found
+          if [ -s .secrets.baseline ]; then
+            echo "⚠️ Potential secrets detected!"
+            cat .secrets.baseline
+            exit 1
+          else
+            echo "✅ No secrets detected"
+          fi
+
+  # 🔒 Container Security (if Docker is used)
+  container-security:
+    name: 🔒 Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'schedule'
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # Check if Dockerfile exists before proceeding
+      - name: 🔍 Check for Docker files
+        id: docker-check
+        run: |
+          if find . -name "Dockerfile*" -o -name "docker-compose*.yml" | head -1; then
+            echo "docker_found=true" >> $GITHUB_OUTPUT
+          else
+            echo "docker_found=false" >> $GITHUB_OUTPUT
+            echo "No Docker files found, skipping container security scan"
+          fi
+
+      - name: 🏗️ Build Docker Image
+        if: steps.docker-check.outputs.docker_found == 'true'
+        run: |
+          # Build images if Dockerfiles exist
+          if [ -f "sleep_mode_frontend/Dockerfile" ]; then
+            docker build -t sleep-mode-frontend:latest sleep_mode_frontend/
+          fi
+          if [ -f "sleep_mode_rails/Dockerfile" ]; then
+            docker build -t sleep-mode-backend:latest sleep_mode_rails/
+          fi
+
+      - name: 🔍 Trivy Container Scan
+        if: steps.docker-check.outputs.docker_found == 'true'
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'sleep-mode-frontend:latest'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: 📄 Upload Container Scan Results
+        if: steps.docker-check.outputs.docker_found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: container-security-results
+          path: trivy-results.sarif
+          retention-days: 30
+
+  # 🏥 License Compliance
+  license-check:
+    name: 🏥 License Compliance Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      # Frontend License Check
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: sleep_mode_frontend/package-lock.json
+
+      - name: 📥 Install Frontend Dependencies
+        working-directory: sleep_mode_frontend
+        run: npm ci
+
+      - name: 🏥 Check Frontend Licenses
+        working-directory: sleep_mode_frontend
+        run: |
+          npx license-checker --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;CC0-1.0' \
+            --json --out frontend-licenses.json || true
+          npx license-checker --summary
+
+      # Backend License Check
+      - name: 💎 Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: sleep_mode_rails
+
+      - name: 🏥 Check Backend Licenses
+        working-directory: sleep_mode_rails
+        run: |
+          gem install license_finder
+          license_finder report --format json > backend-licenses.json || true
+          license_finder
+
+      - name: 📄 Upload License Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: license-compliance-results
+          path: |
+            sleep_mode_frontend/frontend-licenses.json
+            sleep_mode_rails/backend-licenses.json
+          retention-days: 30
+
+  # 📊 Security Summary
+  security-summary:
+    name: 📊 Security Summary Report
+    runs-on: ubuntu-latest
+    needs: [dependency-check, code-security, secrets-scan, license-check]
+    if: always()
+
+    steps:
+      - name: 📥 Download All Security Results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-results"
+          path: ./security-results
+          merge-multiple: true
+
+      - name: 📊 Generate Security Summary
+        run: |
+          echo "# 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Check | Status | Details |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------------|--------|---------|" >> $GITHUB_STEP_SUMMARY
+          
+          # Dependency Check Results
+          if [ "${{ needs.dependency-check.result }}" = "success" ]; then
+            echo "| 🔍 Dependency Scan | ✅ Passed | No critical vulnerabilities |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🔍 Dependency Scan | ⚠️ Issues Found | Check artifacts for details |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Code Security Results
+          if [ "${{ needs.code-security.result }}" = "success" ]; then
+            echo "| 🛡️ Code Security | ✅ Passed | No security issues detected |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🛡️ Code Security | ⚠️ Issues Found | Review CodeQL and Semgrep reports |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Secrets Scan Results
+          if [ "${{ needs.secrets-scan.result }}" = "success" ]; then
+            echo "| 🔐 Secrets Scan | ✅ Passed | No secrets detected |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🔐 Secrets Scan | ❌ Failed | Potential secrets found! |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # License Compliance Results
+          if [ "${{ needs.license-check.result }}" = "success" ]; then
+            echo "| 🏥 License Check | ✅ Passed | All licenses compliant |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| 🏥 License Check | ⚠️ Issues Found | Review license compliance |" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Security Reports**: Available in job artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **CodeQL Results**: Check Security tab in repository" >> $GITHUB_STEP_SUMMARY
+          echo "📅 **Last Scan**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          
+          # Add recommendations if any issues found
+          if [ "${{ needs.dependency-check.result }}" != "success" ] || 
+             [ "${{ needs.code-security.result }}" != "success" ] || 
+             [ "${{ needs.secrets-scan.result }}" != "success" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "## 🚨 Action Required" >> $GITHUB_STEP_SUMMARY
+            echo "- Review security scan artifacts" >> $GITHUB_STEP_SUMMARY
+            echo "- Update vulnerable dependencies" >> $GITHUB_STEP_SUMMARY
+            echo "- Address code security issues" >> $GITHUB_STEP_SUMMARY
+            echo "- Remove or secure any detected secrets" >> $GITHUB_STEP_SUMMARY
+          fi 

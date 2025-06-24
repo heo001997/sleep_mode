@@ -1,0 +1,109 @@
+{
+  "cdn": {
+    "provider": "cloudflare",
+    "urls": {
+      "primary": "https://cdn.sleepmode.app",
+      "assets": "https://assets.sleepmode.app",
+      "images": "https://images.sleepmode.app",
+      "fallback": "https://backup-cdn.sleepmode.app"
+    }
+  },
+  "caching": {
+    "staticAssets": {
+      "javascript": {
+        "maxAge": 31536000,
+        "immutable": true,
+        "compression": ["gzip", "brotli"]
+      },
+      "css": {
+        "maxAge": 31536000,
+        "immutable": true,
+        "compression": ["gzip", "brotli"]
+      },
+      "images": {
+        "maxAge": 31536000,
+        "formats": ["webp", "avif", "jpg", "png"],
+        "optimization": true
+      },
+      "fonts": {
+        "maxAge": 31536000,
+        "crossOrigin": true,
+        "preload": true
+      }
+    },
+    "dynamicContent": {
+      "html": {
+        "maxAge": 300,
+        "staleWhileRevalidate": 86400
+      },
+      "api": {
+        "maxAge": 0,
+        "mustRevalidate": true
+      }
+    }
+  },
+  "optimization": {
+    "compression": {
+      "gzip": {
+        "enabled": true,
+        "level": 6,
+        "minSize": 1024
+      },
+      "brotli": {
+        "enabled": true,
+        "level": 6,
+        "minSize": 1024
+      }
+    },
+    "images": {
+      "formats": ["webp", "avif"],
+      "quality": 85,
+      "progressive": true
+    },
+    "bundling": {
+      "splitting": true,
+      "chunkStrategy": "vendor",
+      "preload": ["critical"]
+    }
+  },
+  "security": {
+    "cors": {
+      "enabled": true,
+      "origins": ["https://app.sleepmode.app", "https://sleepmode.app"]
+    },
+    "headers": {
+      "accessControlAllowOrigin": "*",
+      "accessControlAllowMethods": "GET, HEAD, OPTIONS",
+      "accessControlMaxAge": "86400"
+    }
+  },
+  "monitoring": {
+    "analytics": {
+      "enabled": true,
+      "provider": "cloudflare"
+    },
+    "performance": {
+      "cacheHitRate": true,
+      "bandwidth": true,
+      "responseTime": true
+    }
+  },
+  "deployment": {
+    "strategies": {
+      "aws": {
+        "bucket": "sleep-mode-assets",
+        "cloudfront": true,
+        "regions": ["us-east-1", "eu-west-1"]
+      },
+      "cloudflare": {
+        "zones": ["sleepmode.app"],
+        "workers": true,
+        "pages": true
+      }
+    },
+    "versioning": {
+      "strategy": "hash",
+      "manifest": true
+    }
+  }
+} 
